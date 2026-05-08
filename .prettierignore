@@ -1,0 +1,17 @@
+# Build outputs
+dist
+.next
+out
+build
+target
+
+# Database
+postgres_data
+
+# Dependências
+node_modules
+
+# Arquivos de sistema e logs
+.DS_Store
+*.log
+npm-debug.log*
