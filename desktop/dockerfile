@@ -1,0 +1,27 @@
+FROM oven/bun:1.1-alpine AS base
+
+# Instalar dependências necessárias para o Tauri no Linux
+RUN apk add --no-cache \
+    libsoup-dev \
+    webkit2gtk-dev \
+    gtk+3.0-dev \
+    curl \
+    wget \
+    pkgconfig \
+    build-base \
+    openssl-dev
+
+# Instalar Rust (necessário para o Core do Tauri)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+WORKDIR /app
+
+COPY package.json bun.lockb ./
+RUN bun install
+
+COPY . .
+
+# O container servirá apenas o frontend para o Tauri "olhar"
+EXPOSE 1420
+CMD ["bun", "run", "dev"]

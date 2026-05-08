@@ -26,7 +26,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: funasinuca-backend
+    container_name: backend
     restart: unless-stopped
     ports:
       - '3000:3000'
@@ -44,11 +44,11 @@ services:
              bunx prisma db seed &&
              bun run src/index.ts"
 
-  frontend:
+  web:
     build:
       context: ./Frontend
       dockerfile: Dockerfile
-    container_name: funasinuca-frontend
+    container_name: web
     restart: unless-stopped
     ports:
       - '3001:3000'
@@ -58,6 +58,22 @@ services:
       - funasinuca_net
     depends_on:
       - backend
+
+  desktop:
+    build:
+      context: ./TauriApp
+      dockerfile: Dockerfile
+    container_name: desktop
+    restart: unless-stopped
+    ports:
+      - '1420:1420'
+    env_file:
+      - ./.env
+    networks:
+      - funasinuca_net
+    depends_on:
+      backend:
+        condition: service_healthy
 
 volumes:
   postgres_data:
