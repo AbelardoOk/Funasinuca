@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  output: 'standalone',
+  env: {
+    EXTERNAL_API_URL: process.env.EXTERNAL_API_URL,
+  },
 };
 
 export default nextConfig;

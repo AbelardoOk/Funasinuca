@@ -24,7 +24,7 @@ services:
 
   backend:
     build:
-      context: ./Backend
+      context: ./backend
       dockerfile: Dockerfile
     container_name: funasinuca-backend
     restart: unless-stopped
@@ -43,6 +43,21 @@ services:
              bunx prisma migrate deploy &&
              bunx prisma db seed &&
              bun run src/index.ts"
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: funasinuca-frontend
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    env_file:
+      - ./.env
+    networks:
+      - funasinuca_net
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

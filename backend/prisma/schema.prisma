@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator prismabox {
+  provider = "prismabox"
+  typeboxImportDependencyName = "elysia"
+  typeboxImportVariableName = "t"
+  inputModel = true
+}
+
+// Representa as classes de usuários do sistema
+enum TipoUsuario {
+  CLIENTE
+  FUNCIONARIO
+  ADMINISTRADOR
+}
+
+// Representa os estados financeiros de uma reserva
+enum StatusPagamento {
+  PENDENTE
+  PAGO
+  CANCELADO
+}
+
+// Representa os estados operacionais de uma mesa
+enum StatusMesa {
+  DISPONIVEL
+  RESERVADA
+  INDISPONIVEL
+  ATRASADA
+}
+
+model Usuario {
+  id           String      @id @default(uuid())
+  nome         String
+  email        String      @unique
+  senha        String      // Armazenará o hash da senha
+  tipo         TipoUsuario @default(CLIENTE)
+
+  reservas     Reserva[]
+
+  criadoEm     DateTime    @default(now())
+  atualizadoEm DateTime    @updatedAt
+}
+
+model Mesa {
+  id           String      @id @default(uuid())
+  numero       Int         @unique
+  status       StatusMesa  @default(DISPONIVEL)
+  ativa        Boolean     @default(true) // Usado para "desativar" em vez de excluir
+
+  reservas     Reserva[]
+
+  criadoEm     DateTime    @default(now())
+  atualizadoEm DateTime    @updatedAt
+}
+
+model Reserva {
+  id              String          @id @default(uuid())
+  usuarioId       String
+  mesaId          String
+
+  // Data e hora de início. O fim é sempre +30 minutos por regra de negócio.
+  horarioInicio   DateTime
+  horarioFim      DateTime
+
+  statusPagamento StatusPagamento @default(PENDENTE)
+
+  // Referência ao gateway externo (não salvamos dados de cartão localmente)
+  gatewayTransacaoId String?
+
+  usuario         Usuario         @relation(fields: [usuarioId], references: [id])
+  mesa            Mesa            @relation(fields: [mesaId], references: [id])
+
+  criadoEm        DateTime        @default(now())
+  atualizadoEm    DateTime        @updatedAt
+}
