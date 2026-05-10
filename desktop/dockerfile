@@ -1,6 +1,10 @@
 FROM oven/bun:1.1-alpine AS base
 
-# Instalar dependências necessárias para o Tauri no Linux
+# Resetar repositórios para o padrão caso o sed tenha falhado
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/main" > /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/v3.20/community" >> /etc/apk/repositories
+
+# Instalar dependências para o Tauri
 RUN apk add --no-cache \
     libsoup-dev \
     webkit2gtk-dev \
@@ -11,17 +15,17 @@ RUN apk add --no-cache \
     build-base \
     openssl-dev
 
-# Instalar Rust (necessário para o Core do Tauri)
+# Instalar Rust (necessário para o core do Tauri v2)
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 WORKDIR /app
 
-COPY package.json bun.lockb ./
+# Garantir o uso do lockfile binário do Bun
+COPY package.json bun.lockb* ./
 RUN bun install
 
 COPY . .
 
-# O container servirá apenas o frontend para o Tauri "olhar"
 EXPOSE 1420
 CMD ["bun", "run", "dev"]

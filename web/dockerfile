@@ -1,27 +1,32 @@
 # Estágio de Dependências
-FROM oven/bun:1.1-alpine AS deps
+FROM node:20-alpine AS deps
+# Adiciona bibliotecas de compatibilidade para binários que esperam glibc
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json bun.lockb ./
-RUN bun install --frozen-lockfile
+
+COPY package.json package-lock.json* ./
+# Instalamos o SWC específico para Linux Musl (Alpine) preventivamente
+RUN npm ci
 
 # Estágio de Build
-FROM oven/bun:1.1-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# O Next.js precisa das variáveis de build se forem NEXT_PUBLIC
+# Desativa telemetria e define que estamos em produção para o build
 ENV NEXT_TELEMETRY_DISABLED 1
-RUN bun run build
+ENV NODE_ENV production
 
-# Estágio de Produção
+RUN npm run build
+
+# Estágio de Produção (Standalone)
 FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Criar usuário para segurança
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
