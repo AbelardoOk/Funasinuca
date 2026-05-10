@@ -29,7 +29,7 @@ services:
     container_name: backend
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - '${BACKEND_PORT}:3000'
       - '5555:5555'
     env_file:
       - ./.env
@@ -38,6 +38,16 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'bun --eval "fetch(\"http://localhost:${BACKEND_PORT}/health\").then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     command: >
       sh -c "bunx prisma generate &&
              bunx prisma migrate deploy &&
@@ -52,7 +62,7 @@ services:
     container_name: web
     restart: unless-stopped
     ports:
-      - '3001:3000'
+      - '${FRONTEND_PORT}:3000'
     env_file:
       - ./.env
     networks:
@@ -71,7 +81,7 @@ services:
       - 8.8.8.8
       - 1.1.1.1
     ports:
-      - '1420:1420'
+      - '${DESKTOP_PORT}:1420'
     env_file:
       - ./.env
     networks:
