@@ -18,7 +18,9 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
-RUN npm run build
+# Alterna para modo de desenvolvimento ou build
+# RUN npm run build
+RUN npm run dev
 
 # Estágio de Produção (Standalone)
 FROM node:20-alpine AS runner
