@@ -50,23 +50,23 @@ cd funasinuca
 Crie um arquivo `.env` na raiz do projeto com as seguintes chaves:
 
 ```env
+# API
+API_URL="https://localhost:3000"
+
 # Portas
 BACKEND_PORT=3000
 FRONTEND_PORT=3001
-DESKTOP_PORT=1420
+DESKTOP_PORT=3002
 
 # Banco de Dados
 DATABASE_URL="postgresql://dev_user:dev_password@postgres:5432/db?schema=public"
 
 # Autenticação
-JWT_SECRET_KEY="sua_chave_jwt_segura"   # gere com: openssl rand -base64 64
+JWT_KEY="sua_chave_jwt_segura"   # gere com: openssl rand -base64 64
 
 # Credenciais do Administrador (usadas no seed)
 ADM_USER="admin@funasinuca.com.br"
-ADM_PASS="sua_senha_segura"
-
-# Senha para hash argon2id
-PASSWORD_SECRET="sua_chave_de_hash"     # gere com: openssl rand -base64 32
+ADM_PASSWD="sua_senha_segura"
 ```
 
 ### 3. Execução com Docker Compose
