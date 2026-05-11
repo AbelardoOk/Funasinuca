@@ -1,5 +1,6 @@
 // prisma/seed.ts
 
+import { password } from 'bun';
 import { prismaClient as prisma } from '../../src/db';
 import { ADM_PASS, ADM_USER } from './env';
 
@@ -12,8 +13,8 @@ async function main() {
     throw new Error('❌: User Adm não foi definido no .env');
   }
 
-  const senhaAdmHash = await Bun.password.hash(ADM_PASS);
-  const senhaPadrao = await Bun.password.hash('senha123');
+  const senhaAdmHash = await password.hashSync(ADM_PASS, 'bcrypt');
+  const senhaPadrao = await password.hashSync('senha123', 'bcrypt');
 
   console.log('👤Criando usuários de teste...');
 
@@ -32,7 +33,7 @@ async function main() {
 
   const funcionario = await prisma.usuario.upsert({
     where: { email: 'balcao@funasinuca.com.br' },
-    update: {},
+    update: { senha: senhaPadrao },
     create: {
       nome: 'Atendente Balcão',
       email: 'balcao@funasinuca.com.br',
@@ -43,7 +44,7 @@ async function main() {
 
   const cliente = await prisma.usuario.upsert({
     where: { email: 'cliente@email.com' },
-    update: {},
+    update: { senha: senhaPadrao },
     create: {
       nome: 'João Cliente',
       email: 'cliente@email.com',
