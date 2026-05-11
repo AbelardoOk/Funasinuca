@@ -19,14 +19,14 @@ O sistema foi idealizado para resolver problemas comuns em bares locais de Campo
 
 ## 🛠️ Tecnologias Utilizadas
 
-| Camada         | Tecnologia                |
-| -------------- | ------------------------- |
-| Frontend       | Next.js 16.2 (App Router) |
-| Desktop        | Tauri (Rust + Vite)       |
-| Backend        | Bun / NestJS              |
-| ORM            | Prisma                    |
-| Banco de Dados | PostgreSQL 16             |
-| Infraestrutura | Docker & Docker Compose   |
+| Camada         | Tecnologia              |
+| -------------- | ----------------------- |
+| Frontend       | Next.js (App Router)    |
+| Desktop        | Tauri (Rust + Vite)     |
+| Backend        | Bun + Elysia            |
+| ORM            | Prisma 7                |
+| Banco de Dados | PostgreSQL 16           |
+| Infraestrutura | Docker & Docker Compose |
 
 ---
 
@@ -50,21 +50,28 @@ cd funasinuca
 Crie um arquivo `.env` na raiz do projeto com as seguintes chaves:
 
 ```env
+# Portas
+BACKEND_PORT=3000
+FRONTEND_PORT=3001
+DESKTOP_PORT=1420
+
 # Banco de Dados
 DATABASE_URL="postgresql://dev_user:dev_password@postgres:5432/db?schema=public"
 
-# Credenciais Administrativas
-ADM_USER="admin"
-ADM_PASSWD="sua_senha_segura"
+# Autenticação
+JWT_SECRET_KEY="sua_chave_jwt_segura"   # gere com: openssl rand -base64 64
 
-# Integrações Externas
-EXTERNAL_API_URL="https://api.exemplo.com"
-EXTERNAL_API_TOKEN="seu_token_aqui"
+# Credenciais do Administrador (usadas no seed)
+ADM_USER="admin@funasinuca.com.br"
+ADM_PASS="sua_senha_segura"
+
+# Senha para hash argon2id
+PASSWORD_SECRET="sua_chave_de_hash"     # gere com: openssl rand -base64 32
 ```
 
 ### 3. Execução com Docker Compose
 
-O comando abaixo irá subir o banco de dados PostgreSQL, o backend (com migrations automáticas) e o frontend web:
+O comando abaixo irá subir o banco de dados PostgreSQL, o backend (com migrations e seed automáticos) e o frontend web:
 
 ```bash
 docker compose up --build
@@ -81,21 +88,85 @@ docker compose up --build
 Para rodar a interface administrativa desktop em modo de desenvolvimento:
 
 ```bash
-cd TauriApp
+cd desktop
 bun install
 bun run tauri dev
 ```
 
 ---
 
+## 📡 Rotas da API
+
+### Autenticação / Usuários — `/api/usuarios`
+
+| Método   | Rota        | Acesso  | Descrição                 |
+| -------- | ----------- | ------- | ------------------------- |
+| `POST`   | `/login`    | Público | Autenticação, retorna JWT |
+| `POST`   | `/register` | Público | Cadastro de novo cliente  |
+| `GET`    | `/`         | Admin   | Listagem de usuários      |
+| `PATCH`  | `/:id`      | Admin   | Edição de usuário         |
+| `DELETE` | `/:id`      | Admin   | Desativação de usuário    |
+
+### Mesas — `/api/mesas`
+
+| Método   | Rota   | Acesso      | Descrição                         |
+| -------- | ------ | ----------- | --------------------------------- |
+| `GET`    | `/`    | Funcionário | Lista mesas com filtros opcionais |
+| `POST`   | `/`    | Funcionário | Cadastra nova mesa                |
+| `PATCH`  | `/:id` | Funcionário | Atualiza dados da mesa            |
+| `DELETE` | `/:id` | Admin       | Desativa mesa (soft delete)       |
+
+### Reservas — `/api/reservas`
+
+| Método  | Rota                      | Acesso      | Descrição                              |
+| ------- | ------------------------- | ----------- | -------------------------------------- |
+| `GET`   | `/disponibilidade`        | Autenticado | Consulta mesas disponíveis por horário |
+| `GET`   | `/minhas`                 | Autenticado | Histórico de reservas do usuário       |
+| `GET`   | `/`                       | Funcionário | Lista todas as reservas com filtros    |
+| `GET`   | `/relatorio`              | Admin       | Relatório de uso e faturamento         |
+| `POST`  | `/`                       | Autenticado | Cria nova reserva                      |
+| `POST`  | `/:id/confirmar-presenca` | Funcionário | Confirma chegada do cliente            |
+| `PATCH` | `/:id/cancelar`           | Autenticado | Cancela reserva                        |
+| `PATCH` | `/:id`                    | Funcionário | Atualiza reserva manualmente           |
+
+---
+
 ## 📋 Regras de Negócio
 
-| Regra                  | Descrição                                                                                                 |
-| ---------------------- | --------------------------------------------------------------------------------------------------------- |
-| **RN1** — Duração      | Cada reserva tem duração fixa de **30 minutos**                                                           |
-| **RN2** — Pagamento    | O pagamento deve ser feito em até **30 minutos** após a reserva, ou ela será cancelada automaticamente    |
-| **RN4** — Cancelamento | Reembolsos são permitidos apenas para cancelamentos com **24h de antecedência**                           |
-| **Tolerância**         | O sistema cancela a reserva automaticamente em caso de atraso superior a **10 minutos** no comparecimento |
+| Regra                                | Descrição                                                                                                                                                 |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **RN1** — Duração                    | Cada reserva tem duração fixa de **30 minutos**. Não é permitido reservar horários consecutivos na mesma mesa.                                            |
+| **RN2** — Pagamento                  | O pagamento deve ser feito em até **30 minutos** após a criação da reserva, ou ela será cancelada automaticamente.                                        |
+| **RN3** — Reserva pelo funcionário   | Funcionários podem cadastrar reservas para horários imediatos ou retroativos diretamente pelo sistema desktop.                                            |
+| **RN4** — Cancelamento               | Reembolsos são permitidos apenas para cancelamentos com **24h de antecedência**. No-show de mais de **10 minutos** cancela automaticamente sem reembolso. |
+| **RN5** — Status das mesas           | Status visível para clientes e funcionários: `disponível`, `reservada`, `indisponível`, `atrasada`.                                                       |
+| **RN6** — Intervenção do funcionário | Funcionários podem sobrescrever regras do sistema em situações excepcionais, com registro da ação para auditoria.                                         |
+
+---
+
+## 🗄️ Modelo de Dados
+
+```prisma
+enum TipoUsuario     { CLIENTE | FUNCIONARIO | ADMINISTRADOR }
+enum StatusPagamento { PENDENTE | PAGO | CANCELADO }
+enum StatusMesa      { DISPONIVEL | RESERVADA | INDISPONIVEL | ATRASADA }
+
+model Usuario  { id, nome, email, cpf, senha, tipo, ativo, reservas[] }
+model Mesa     { id, numero, status, ativa, reservas[] }
+model Reserva  { id, usuarioId, mesaId, horarioInicio, horarioFim,
+                 statusPagamento, presencaConfirmada, gatewayTransacaoId }
+```
+
+---
+
+## 🧪 Testes
+
+```bash
+bun test                     # todos os testes
+bun test tests/unit          # testes unitários
+bun test tests/integration   # testes de integração
+bun test --coverage          # com cobertura
+```
 
 ---
 
