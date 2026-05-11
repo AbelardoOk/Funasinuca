@@ -45,3 +45,5 @@ const app = new Elysia()
 // no index.ts, antes do .listen()
 // console.log(app.routes.map((r) => `${r.method} ${r.path}`));
 console.log(`🦊 Backend rodando em ${app.server?.hostname}:${app.server?.port}`);
+
+export default app;
