@@ -31,6 +31,7 @@ export type ReservaMinAggregateOutputType = {
   horarioInicio: Date | null
   horarioFim: Date | null
   statusPagamento: $Enums.StatusPagamento | null
+  presencaConfirmada: boolean | null
   gatewayTransacaoId: string | null
   criadoEm: Date | null
   atualizadoEm: Date | null
@@ -43,6 +44,7 @@ export type ReservaMaxAggregateOutputType = {
   horarioInicio: Date | null
   horarioFim: Date | null
   statusPagamento: $Enums.StatusPagamento | null
+  presencaConfirmada: boolean | null
   gatewayTransacaoId: string | null
   criadoEm: Date | null
   atualizadoEm: Date | null
@@ -55,6 +57,7 @@ export type ReservaCountAggregateOutputType = {
   horarioInicio: number
   horarioFim: number
   statusPagamento: number
+  presencaConfirmada: number
   gatewayTransacaoId: number
   criadoEm: number
   atualizadoEm: number
@@ -69,6 +72,7 @@ export type ReservaMinAggregateInputType = {
   horarioInicio?: true
   horarioFim?: true
   statusPagamento?: true
+  presencaConfirmada?: true
   gatewayTransacaoId?: true
   criadoEm?: true
   atualizadoEm?: true
@@ -81,6 +85,7 @@ export type ReservaMaxAggregateInputType = {
   horarioInicio?: true
   horarioFim?: true
   statusPagamento?: true
+  presencaConfirmada?: true
   gatewayTransacaoId?: true
   criadoEm?: true
   atualizadoEm?: true
@@ -93,6 +98,7 @@ export type ReservaCountAggregateInputType = {
   horarioInicio?: true
   horarioFim?: true
   statusPagamento?: true
+  presencaConfirmada?: true
   gatewayTransacaoId?: true
   criadoEm?: true
   atualizadoEm?: true
@@ -178,6 +184,7 @@ export type ReservaGroupByOutputType = {
   horarioInicio: Date
   horarioFim: Date
   statusPagamento: $Enums.StatusPagamento
+  presencaConfirmada: boolean
   gatewayTransacaoId: string | null
   criadoEm: Date
   atualizadoEm: Date
@@ -211,6 +218,7 @@ export type ReservaWhereInput = {
   horarioInicio?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   horarioFim?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFilter<"Reserva"> | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFilter<"Reserva"> | boolean
   gatewayTransacaoId?: Prisma.StringNullableFilter<"Reserva"> | string | null
   criadoEm?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   atualizadoEm?: Prisma.DateTimeFilter<"Reserva"> | Date | string
@@ -225,6 +233,7 @@ export type ReservaOrderByWithRelationInput = {
   horarioInicio?: Prisma.SortOrder
   horarioFim?: Prisma.SortOrder
   statusPagamento?: Prisma.SortOrder
+  presencaConfirmada?: Prisma.SortOrder
   gatewayTransacaoId?: Prisma.SortOrderInput | Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
   atualizadoEm?: Prisma.SortOrder
@@ -242,6 +251,7 @@ export type ReservaWhereUniqueInput = Prisma.AtLeast<{
   horarioInicio?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   horarioFim?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFilter<"Reserva"> | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFilter<"Reserva"> | boolean
   gatewayTransacaoId?: Prisma.StringNullableFilter<"Reserva"> | string | null
   criadoEm?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   atualizadoEm?: Prisma.DateTimeFilter<"Reserva"> | Date | string
@@ -256,6 +266,7 @@ export type ReservaOrderByWithAggregationInput = {
   horarioInicio?: Prisma.SortOrder
   horarioFim?: Prisma.SortOrder
   statusPagamento?: Prisma.SortOrder
+  presencaConfirmada?: Prisma.SortOrder
   gatewayTransacaoId?: Prisma.SortOrderInput | Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
   atualizadoEm?: Prisma.SortOrder
@@ -274,6 +285,7 @@ export type ReservaScalarWhereWithAggregatesInput = {
   horarioInicio?: Prisma.DateTimeWithAggregatesFilter<"Reserva"> | Date | string
   horarioFim?: Prisma.DateTimeWithAggregatesFilter<"Reserva"> | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoWithAggregatesFilter<"Reserva"> | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolWithAggregatesFilter<"Reserva"> | boolean
   gatewayTransacaoId?: Prisma.StringNullableWithAggregatesFilter<"Reserva"> | string | null
   criadoEm?: Prisma.DateTimeWithAggregatesFilter<"Reserva"> | Date | string
   atualizadoEm?: Prisma.DateTimeWithAggregatesFilter<"Reserva"> | Date | string
@@ -284,6 +296,7 @@ export type ReservaCreateInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -298,6 +311,7 @@ export type ReservaUncheckedCreateInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -308,6 +322,7 @@ export type ReservaUpdateInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -322,6 +337,7 @@ export type ReservaUncheckedUpdateInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -334,6 +350,7 @@ export type ReservaCreateManyInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -344,6 +361,7 @@ export type ReservaUpdateManyMutationInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -356,6 +374,7 @@ export type ReservaUncheckedUpdateManyInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -378,6 +397,7 @@ export type ReservaCountOrderByAggregateInput = {
   horarioInicio?: Prisma.SortOrder
   horarioFim?: Prisma.SortOrder
   statusPagamento?: Prisma.SortOrder
+  presencaConfirmada?: Prisma.SortOrder
   gatewayTransacaoId?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
   atualizadoEm?: Prisma.SortOrder
@@ -390,6 +410,7 @@ export type ReservaMaxOrderByAggregateInput = {
   horarioInicio?: Prisma.SortOrder
   horarioFim?: Prisma.SortOrder
   statusPagamento?: Prisma.SortOrder
+  presencaConfirmada?: Prisma.SortOrder
   gatewayTransacaoId?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
   atualizadoEm?: Prisma.SortOrder
@@ -402,6 +423,7 @@ export type ReservaMinOrderByAggregateInput = {
   horarioInicio?: Prisma.SortOrder
   horarioFim?: Prisma.SortOrder
   statusPagamento?: Prisma.SortOrder
+  presencaConfirmada?: Prisma.SortOrder
   gatewayTransacaoId?: Prisma.SortOrder
   criadoEm?: Prisma.SortOrder
   atualizadoEm?: Prisma.SortOrder
@@ -500,6 +522,7 @@ export type ReservaCreateWithoutUsuarioInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -512,6 +535,7 @@ export type ReservaUncheckedCreateWithoutUsuarioInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -553,6 +577,7 @@ export type ReservaScalarWhereInput = {
   horarioInicio?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   horarioFim?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFilter<"Reserva"> | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFilter<"Reserva"> | boolean
   gatewayTransacaoId?: Prisma.StringNullableFilter<"Reserva"> | string | null
   criadoEm?: Prisma.DateTimeFilter<"Reserva"> | Date | string
   atualizadoEm?: Prisma.DateTimeFilter<"Reserva"> | Date | string
@@ -563,6 +588,7 @@ export type ReservaCreateWithoutMesaInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -575,6 +601,7 @@ export type ReservaUncheckedCreateWithoutMesaInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -612,6 +639,7 @@ export type ReservaCreateManyUsuarioInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -622,6 +650,7 @@ export type ReservaUpdateWithoutUsuarioInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -634,6 +663,7 @@ export type ReservaUncheckedUpdateWithoutUsuarioInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -645,6 +675,7 @@ export type ReservaUncheckedUpdateManyWithoutUsuarioInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -656,6 +687,7 @@ export type ReservaCreateManyMesaInput = {
   horarioInicio: Date | string
   horarioFim: Date | string
   statusPagamento?: $Enums.StatusPagamento
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: string | null
   criadoEm?: Date | string
   atualizadoEm?: Date | string
@@ -666,6 +698,7 @@ export type ReservaUpdateWithoutMesaInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -678,6 +711,7 @@ export type ReservaUncheckedUpdateWithoutMesaInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -689,6 +723,7 @@ export type ReservaUncheckedUpdateManyWithoutMesaInput = {
   horarioInicio?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   horarioFim?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   statusPagamento?: Prisma.EnumStatusPagamentoFieldUpdateOperationsInput | $Enums.StatusPagamento
+  presencaConfirmada?: Prisma.BoolFieldUpdateOperationsInput | boolean
   gatewayTransacaoId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   criadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   atualizadoEm?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -703,6 +738,7 @@ export type ReservaSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   horarioInicio?: boolean
   horarioFim?: boolean
   statusPagamento?: boolean
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: boolean
   criadoEm?: boolean
   atualizadoEm?: boolean
@@ -717,6 +753,7 @@ export type ReservaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   horarioInicio?: boolean
   horarioFim?: boolean
   statusPagamento?: boolean
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: boolean
   criadoEm?: boolean
   atualizadoEm?: boolean
@@ -731,6 +768,7 @@ export type ReservaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   horarioInicio?: boolean
   horarioFim?: boolean
   statusPagamento?: boolean
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: boolean
   criadoEm?: boolean
   atualizadoEm?: boolean
@@ -745,12 +783,13 @@ export type ReservaSelectScalar = {
   horarioInicio?: boolean
   horarioFim?: boolean
   statusPagamento?: boolean
+  presencaConfirmada?: boolean
   gatewayTransacaoId?: boolean
   criadoEm?: boolean
   atualizadoEm?: boolean
 }
 
-export type ReservaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "usuarioId" | "mesaId" | "horarioInicio" | "horarioFim" | "statusPagamento" | "gatewayTransacaoId" | "criadoEm" | "atualizadoEm", ExtArgs["result"]["reserva"]>
+export type ReservaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "usuarioId" | "mesaId" | "horarioInicio" | "horarioFim" | "statusPagamento" | "presencaConfirmada" | "gatewayTransacaoId" | "criadoEm" | "atualizadoEm", ExtArgs["result"]["reserva"]>
 export type ReservaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   usuario?: boolean | Prisma.UsuarioDefaultArgs<ExtArgs>
   mesa?: boolean | Prisma.MesaDefaultArgs<ExtArgs>
@@ -777,6 +816,7 @@ export type $ReservaPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     horarioInicio: Date
     horarioFim: Date
     statusPagamento: $Enums.StatusPagamento
+    presencaConfirmada: boolean
     gatewayTransacaoId: string | null
     criadoEm: Date
     atualizadoEm: Date
@@ -1211,6 +1251,7 @@ export interface ReservaFieldRefs {
   readonly horarioInicio: Prisma.FieldRef<"Reserva", 'DateTime'>
   readonly horarioFim: Prisma.FieldRef<"Reserva", 'DateTime'>
   readonly statusPagamento: Prisma.FieldRef<"Reserva", 'StatusPagamento'>
+  readonly presencaConfirmada: Prisma.FieldRef<"Reserva", 'Boolean'>
   readonly gatewayTransacaoId: Prisma.FieldRef<"Reserva", 'String'>
   readonly criadoEm: Prisma.FieldRef<"Reserva", 'DateTime'>
   readonly atualizadoEm: Prisma.FieldRef<"Reserva", 'DateTime'>

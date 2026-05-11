@@ -38,6 +38,7 @@ export const MesaRelations = t.Object(
             [t.Literal("PENDENTE"), t.Literal("PAGO"), t.Literal("CANCELADO")],
             { additionalProperties: false },
           ),
+          presencaConfirmada: t.Boolean(),
           gatewayTransacaoId: __nullable__(t.String()),
           criadoEm: t.Date(),
           atualizadoEm: t.Date(),

@@ -105,6 +105,7 @@ export const ReservaScalarFieldEnum = {
   horarioInicio: 'horarioInicio',
   horarioFim: 'horarioFim',
   statusPagamento: 'statusPagamento',
+  presencaConfirmada: 'presencaConfirmada',
   gatewayTransacaoId: 'gatewayTransacaoId',
   criadoEm: 'criadoEm',
   atualizadoEm: 'atualizadoEm'
