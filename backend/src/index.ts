@@ -41,6 +41,9 @@ const app = new Elysia()
 
   .listen(3000);
 
+// Abaixo está a tarefa que realiza a cada minuto verificando as reservas
+// iniciarJobs();
+
 // no index.ts, antes do .listen()
 // console.log(app.routes.map((r) => `${r.method} ${r.path}`));
 console.log(`🦊 Backend rodando em ${app.server?.hostname}:${app.server?.port}`);

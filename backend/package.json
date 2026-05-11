@@ -13,9 +13,11 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "elysia": "latest",
+    "node-cron": "^4.2.1",
     "prismabox": "^1.1.26"
   },
   "devDependencies": {
+    "@types/node-cron": "^3.0.11",
     "bun-types": "latest",
     "prisma": "^7.8.0"
   },

@@ -1,8 +1,8 @@
-import { cron } from 'bun';
+import cron from 'node-cron';
 import { prismaClient as prisma } from '../db';
 
-export const iniciar = () => {
-  cron('* * * * *', async () => {
+export const iniciarJobs = () => {
+  cron.schedule('* * * * *', async () => {
     const agora = new Date();
 
     await prisma.reserva.updateMany({
@@ -16,8 +16,8 @@ export const iniciar = () => {
     await prisma.reserva.updateMany({
       where: {
         statusPagamento: 'PAGO',
+        presencaConfirmada: false,
         horarioInicio: { lt: new Date(agora.getTime() - 10 * 60000) },
-        // aqui precisaria de um campo "presencaConfirmada" no schema
       },
       data: { statusPagamento: 'CANCELADO' },
     });
