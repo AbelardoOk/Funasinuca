@@ -1,6 +1,6 @@
 import cors from '@elysiajs/cors';
 import { Elysia } from 'elysia';
-import { UnauthorizedError } from './auth';
+import { UnauthorizedError } from './lib/auth';
 import mesasGroup from './routes/mesas';
 import reservaGroup from './routes/reservas';
 import usuariosGroup from './routes/usuario';

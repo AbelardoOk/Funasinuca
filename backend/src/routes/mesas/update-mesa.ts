@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { StatusMesa } from '../../../prisma/prismabox/StatusMesa';
-import auth from '../../auth';
-import prisma from '../../db';
+import auth from '../../lib/auth';
+import prisma from '../../lib/db';
 
 const updateMesa = new Elysia()
   .use(auth)

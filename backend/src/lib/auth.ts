@@ -1,7 +1,7 @@
 import { bearer } from '@elysiajs/bearer';
 import { jwt } from '@elysiajs/jwt';
 import { Elysia, t } from 'elysia';
-import { TipoUsuario } from '../prisma/prismabox/TipoUsuario';
+import { TipoUsuario } from '../../prisma/prismabox/TipoUsuario';
 import { prismaClient as prisma } from './db';
 
 export class UnauthorizedError extends Error {

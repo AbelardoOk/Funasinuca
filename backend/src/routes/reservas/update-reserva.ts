@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia';
-import auth from '../../auth';
-import prisma from '../../db';
+import auth from '../../lib/auth';
+import prisma from '../../lib/db';
 import { StatusPagamentoSchema } from '../../lib/schemas';
 
 const updateReserva = new Elysia()
@@ -20,7 +20,7 @@ const updateReserva = new Elysia()
       const reservaAtualizada = await prisma.reserva.update({
         where: { id: params.id },
         data: {
-          ...(body.statusPagamento && { statusPagamento: body.statusPagamento }),
+          ...(body.status && { statusPagamento: body.status }),
           ...(body.gatewayTransacaoId && { gatewayTransacaoId: body.gatewayTransacaoId }),
           // RN6: funcionário pode sobrescrever horários
           ...(body.horarioInicio && {

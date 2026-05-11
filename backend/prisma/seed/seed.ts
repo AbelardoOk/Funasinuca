@@ -1,7 +1,7 @@
 // prisma/seed.ts
 
 import { password } from 'bun';
-import { prismaClient as prisma } from '../../src/db';
+import { prismaClient as prisma } from '../../src/lib/db';
 import { ADM_PASS, ADM_USER } from './env';
 
 async function main() {

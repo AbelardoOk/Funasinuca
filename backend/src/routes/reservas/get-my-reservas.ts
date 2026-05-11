@@ -1,7 +1,7 @@
 // routes/reservas/getMinhasReservas.ts
 import { Elysia, t } from 'elysia';
-import auth from '../../auth';
-import prisma from '../../db';
+import auth from '../../lib/auth';
+import prisma from '../../lib/db';
 import { StatusPagamentoSchema } from '../../lib/schemas';
 
 const getMinhasReservas = new Elysia()

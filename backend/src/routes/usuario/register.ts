@@ -2,8 +2,8 @@ import { password } from 'bun';
 import { Elysia, t } from 'elysia';
 import { Prisma } from '../../../prisma/generated/client/client';
 import { TipoUsuario } from '../../../prisma/prismabox/TipoUsuario';
-import auth from '../../auth';
-import prisma from '../../db';
+import auth from '../../lib/auth';
+import prisma from '../../lib/db';
 import { checkRateLimit } from '../../lib/rateLimit';
 
 export class EmailEmUsoError extends Error {

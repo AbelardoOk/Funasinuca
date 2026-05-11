@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia';
-import auth from '../../auth';
-import prisma from '../../db';
+import auth from '../../lib/auth';
+import prisma from '../../lib/db';
 
 const createMesa = new Elysia()
   .use(auth)

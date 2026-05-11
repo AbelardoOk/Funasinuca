@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { prismaClient as prisma } from '../db';
+import { prismaClient as prisma } from '../lib/db';
 
 export const iniciarJobs = () => {
   cron.schedule('* * * * *', async () => {

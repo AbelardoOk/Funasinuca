@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia';
-import auth, { UnauthorizedError } from '../../auth';
-import prisma from '../../db';
+import auth, { UnauthorizedError } from '../../lib/auth';
+import prisma from '../../lib/db';
 import { checkRateLimit } from '../../lib/rateLimit';
 
 const login = new Elysia()
