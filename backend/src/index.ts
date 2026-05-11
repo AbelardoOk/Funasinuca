@@ -1,7 +1,8 @@
 import cors from '@elysiajs/cors';
 import { Elysia } from 'elysia';
 import { UnauthorizedError } from './auth';
-import login from './routes/login';
+import login from './routes/usuario/login';
+import register from './routes/usuario/register';
 
 const app = new Elysia()
   .error({ UNAUTHORIZED: UnauthorizedError })
@@ -30,7 +31,8 @@ const app = new Elysia()
           ],
         }),
       )
-      .use(login),
+      .use(login)
+      .use(register),
   )
 
   .listen(3000);

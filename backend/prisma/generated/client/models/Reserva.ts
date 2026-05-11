@@ -495,10 +495,6 @@ export type EnumStatusPagamentoFieldUpdateOperationsInput = {
   set?: $Enums.StatusPagamento
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type ReservaCreateWithoutUsuarioInput = {
   id?: string
   horarioInicio: Date | string

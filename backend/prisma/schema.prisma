@@ -45,6 +45,7 @@ model Usuario {
   id           String      @id @default(uuid())
   nome         String
   email        String      @unique
+  cpf          String?      @unique @db.Char(11)
   senha        String      // Armazenará o hash da senha
   tipo         TipoUsuario @default(CLIENTE)
 

@@ -29,6 +29,7 @@ export const ReservaRelations = t.Object(
         id: t.String(),
         nome: t.String(),
         email: t.String(),
+        cpf: __nullable__(t.String()),
         senha: t.String(),
         tipo: t.Union(
           [

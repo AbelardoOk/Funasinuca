@@ -9,6 +9,7 @@ export const UsuarioPlain = t.Object(
     id: t.String(),
     nome: t.String(),
     email: t.String(),
+    cpf: __nullable__(t.String()),
     senha: t.String(),
     tipo: t.Union(
       [
@@ -54,6 +55,7 @@ export const UsuarioPlainInputCreate = t.Object(
   {
     nome: t.String(),
     email: t.String(),
+    cpf: t.Optional(__nullable__(t.String())),
     senha: t.String(),
     tipo: t.Optional(
       t.Union(
@@ -74,6 +76,7 @@ export const UsuarioPlainInputUpdate = t.Object(
   {
     nome: t.Optional(t.String()),
     email: t.Optional(t.String()),
+    cpf: t.Optional(__nullable__(t.String())),
     senha: t.Optional(t.String()),
     tipo: t.Optional(
       t.Union(
@@ -156,6 +159,7 @@ export const UsuarioWhere = t.Partial(
           id: t.String(),
           nome: t.String(),
           email: t.String(),
+          cpf: t.String(),
           senha: t.String(),
           tipo: t.Union(
             [
@@ -180,13 +184,17 @@ export const UsuarioWhereUnique = t.Recursive(
       [
         t.Partial(
           t.Object(
-            { id: t.String(), email: t.String() },
+            { id: t.String(), email: t.String(), cpf: t.String() },
             { additionalProperties: false },
           ),
           { additionalProperties: false },
         ),
         t.Union(
-          [t.Object({ id: t.String() }), t.Object({ email: t.String() })],
+          [
+            t.Object({ id: t.String() }),
+            t.Object({ email: t.String() }),
+            t.Object({ cpf: t.String() }),
+          ],
           { additionalProperties: false },
         ),
         t.Partial(
@@ -209,6 +217,7 @@ export const UsuarioWhereUnique = t.Recursive(
               id: t.String(),
               nome: t.String(),
               email: t.String(),
+              cpf: t.String(),
               senha: t.String(),
               tipo: t.Union(
                 [
@@ -236,6 +245,7 @@ export const UsuarioSelect = t.Partial(
       id: t.Boolean(),
       nome: t.Boolean(),
       email: t.Boolean(),
+      cpf: t.Boolean(),
       senha: t.Boolean(),
       tipo: t.Boolean(),
       reservas: t.Boolean(),
@@ -264,6 +274,9 @@ export const UsuarioOrderBy = t.Partial(
         additionalProperties: false,
       }),
       email: t.Union([t.Literal("asc"), t.Literal("desc")], {
+        additionalProperties: false,
+      }),
+      cpf: t.Union([t.Literal("asc"), t.Literal("desc")], {
         additionalProperties: false,
       }),
       senha: t.Union([t.Literal("asc"), t.Literal("desc")], {

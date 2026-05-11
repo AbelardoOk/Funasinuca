@@ -1,6 +1,6 @@
 import { Elysia, t } from 'elysia';
-import auth, { UnauthorizedError } from '../auth';
-import prisma from '../db';
+import auth, { UnauthorizedError } from '../../auth';
+import prisma from '../../db';
 
 const login = new Elysia()
   .use(auth)
