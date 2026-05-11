@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import auth from '../../auth';
 import prisma from '../../db';
+import { StatusMesaSchema } from '../../lib/schemas';
 
 const getMesas = new Elysia()
   .use(auth)
@@ -23,14 +24,7 @@ const getMesas = new Elysia()
     },
     {
       query: t.Object({
-        status: t.Optional(
-          t.Union([
-            t.Literal('DISPONIVEL'),
-            t.Literal('RESERVADA'),
-            t.Literal('INDISPONIVEL'),
-            t.Literal('ATRASADA'),
-          ]),
-        ),
+        status: t.Optional(StatusMesaSchema),
         ativa: t.Optional(t.String()),
         numero: t.Optional(t.String()),
       }),

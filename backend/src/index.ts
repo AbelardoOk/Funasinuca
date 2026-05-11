@@ -2,6 +2,7 @@ import cors from '@elysiajs/cors';
 import { Elysia } from 'elysia';
 import { UnauthorizedError } from './auth';
 import mesasGroup from './routes/mesas';
+import reservaGroup from './routes/reservas';
 import login from './routes/usuario/login';
 import register from './routes/usuario/register';
 
@@ -34,7 +35,8 @@ const app = new Elysia()
       )
       .use(login)
       .use(register)
-      .use(mesasGroup),
+      .use(mesasGroup)
+      .use(reservaGroup),
   )
 
   .listen(3000);
