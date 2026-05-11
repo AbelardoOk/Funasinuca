@@ -3,8 +3,7 @@ import { Elysia } from 'elysia';
 import { UnauthorizedError } from './auth';
 import mesasGroup from './routes/mesas';
 import reservaGroup from './routes/reservas';
-import login from './routes/usuario/login';
-import register from './routes/usuario/register';
+import usuariosGroup from './routes/usuario';
 
 const app = new Elysia()
   .error({ UNAUTHORIZED: UnauthorizedError })
@@ -33,8 +32,7 @@ const app = new Elysia()
           ],
         }),
       )
-      .use(login)
-      .use(register)
+      .use(usuariosGroup)
       .use(mesasGroup)
       .use(reservaGroup),
   )
