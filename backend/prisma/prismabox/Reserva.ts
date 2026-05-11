@@ -40,6 +40,7 @@ export const ReservaRelations = t.Object(
           ],
           { additionalProperties: false },
         ),
+        ativo: t.Boolean(),
         criadoEm: t.Date(),
         atualizadoEm: t.Date(),
       },

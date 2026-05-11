@@ -395,10 +395,6 @@ export type EnumStatusMesaFieldUpdateOperationsInput = {
   set?: $Enums.StatusMesa
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type MesaCreateNestedOneWithoutReservasInput = {
   create?: Prisma.XOR<Prisma.MesaCreateWithoutReservasInput, Prisma.MesaUncheckedCreateWithoutReservasInput>
   connectOrCreate?: Prisma.MesaCreateOrConnectWithoutReservasInput

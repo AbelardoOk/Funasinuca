@@ -674,6 +674,7 @@ export const UsuarioScalarFieldEnum = {
   cpf: 'cpf',
   senha: 'senha',
   tipo: 'tipo',
+  ativo: 'ativo',
   criadoEm: 'criadoEm',
   atualizadoEm: 'atualizadoEm'
 } as const
@@ -768,6 +769,13 @@ export type ListEnumTipoUsuarioFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -806,13 +814,6 @@ export type EnumStatusMesaFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
  * Reference to a field of type 'StatusMesa[]'
  */
 export type ListEnumStatusMesaFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'StatusMesa[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

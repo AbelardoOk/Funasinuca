@@ -4,6 +4,7 @@ import { Prisma } from '../../../prisma/generated/client/client';
 import { TipoUsuario } from '../../../prisma/prismabox/TipoUsuario';
 import auth from '../../auth';
 import prisma from '../../db';
+import { checkRateLimit } from '../../lib/rateLimit';
 
 export class EmailEmUsoError extends Error {
   constructor() {
@@ -33,7 +34,13 @@ const register = new Elysia()
   })
   .post(
     '/register',
-    async ({ prisma, body, jwt }) => {
+    async ({ request, set, prisma, body, jwt }) => {
+      const ip = request.headers.get('x-forwarded-for') ?? 'unknown';
+      if (checkRateLimit(ip, 10, 60000)) {
+        set.status = 429;
+        return { ok: false, error: 'Muitas tentativas. Tente novamente em 1 minuto.' };
+      }
+
       const senha = await password.hash(body.senha, 'bcrypt');
 
       if (body.cpf.length != 11) {
