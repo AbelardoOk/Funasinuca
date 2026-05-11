@@ -2,7 +2,7 @@ import { bearer } from '@elysiajs/bearer';
 import { jwt } from '@elysiajs/jwt';
 import { Elysia, t } from 'elysia';
 import { TipoUsuario } from '../prisma/prismabox/TipoUsuario';
-import { Usuario } from '../prisma/prismabox/Usuario';
+import { prismaClient as prisma } from './db';
 
 export class UnauthorizedError extends Error {
   constructor(message = 'Unauthorized') {
@@ -21,14 +21,16 @@ const auth = new Elysia({ name: 'auth' })
       }),
     }),
   )
-  .derive(({ bearer, jwt }) => {
+  .derive({ as: 'global' }, ({ bearer, jwt }) => {
     const getAuthenticatedUser = async () => {
+      if (!bearer) throw new UnauthorizedError('Token não fornecido');
+
       const session = await jwt.verify(bearer);
       if (!session || typeof session.userId !== 'string') {
         throw new UnauthorizedError();
       }
 
-      const user = await Usuario.findUnique({
+      const user = await prisma.usuario.findUnique({
         where: { id: session.userId },
       });
 
