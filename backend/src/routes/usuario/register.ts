@@ -66,13 +66,12 @@ const register = new Elysia()
         data: {
           token: await jwt.sign({ userId: user.id }),
           userName: user.nome,
-          cpf: user.cpf,
         },
       };
     },
     {
       body: t.Object(
-        { nome: t.String(), cpf: t.String(), email: t.String(), senha: t.String() },
+        { nome: t.String(), cpf: t.String(), email: t.String(), senha: t.String({ minLength: 8 }) },
         { error: 'A requisição precisa apenas de nome, cpf, email e senha' },
       ),
       detail: { tags: ['Auth'] },

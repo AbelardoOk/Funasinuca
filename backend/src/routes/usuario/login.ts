@@ -1,10 +1,12 @@
 import { Elysia, t } from 'elysia';
+import { rateLimit } from 'elysia-rate-limit';
 import auth, { UnauthorizedError } from '../../auth';
 import prisma from '../../db';
 
 const login = new Elysia()
   .use(auth)
   .use(prisma)
+  .use(rateLimit({ duration: 60000, max: 10 }))
   .post(
     '/login',
     async ({ prisma, body, jwt }) => {

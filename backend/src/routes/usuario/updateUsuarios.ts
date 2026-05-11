@@ -16,6 +16,16 @@ const updateUsuario = new Elysia()
         return { ok: false, error: 'Usuário não encontrado' };
       }
 
+      if (body.tipo && usuario.tipo === 'ADMINISTRADOR' && body.tipo !== 'ADMINISTRADOR') {
+        const totalAdmins = await prisma.usuario.count({
+          where: { tipo: 'ADMINISTRADOR', ativo: true },
+        });
+        if (totalAdmins <= 1) {
+          set.status = 422;
+          return { ok: false, error: 'Não é possível remover o único administrador do sistema' };
+        }
+      }
+
       const usuarioAtualizado = await prisma.usuario.update({
         where: { id: params.id },
         data: body,
