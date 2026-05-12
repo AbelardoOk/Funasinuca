@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import auth from '../../lib/auth';
+import { DURACAO_RESERVA_MS } from '../../lib/constants';
 import prisma from '../../lib/db';
 
 const getDisponibilidade = new Elysia()
@@ -11,7 +12,7 @@ const getDisponibilidade = new Elysia()
       await getUserId(); // qualquer usuário autenticado pode consultar
 
       const horarioInicio = new Date(query.horarioInicio);
-      const horarioFim = new Date(horarioInicio.getTime() + 30 * 60000);
+      const horarioFim = new Date(horarioInicio.getTime() + DURACAO_RESERVA_MS);
 
       // Busca todas as mesas ativas
       const todasMesas = await prisma.mesa.findMany({

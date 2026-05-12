@@ -1,5 +1,6 @@
 import { Elysia, t } from 'elysia';
 import auth from '../../lib/auth';
+import { DURACAO_RESERVA_MS } from '../../lib/constants';
 import prisma from '../../lib/db';
 
 export class MesaIndisponivelError extends Error {
@@ -37,7 +38,7 @@ const createReserva = new Elysia()
       const usuarioId = await getUserId();
 
       const horarioInicio = new Date(body.horarioInicio);
-      const horarioFim = new Date(horarioInicio.getTime() + 30 * 60000); // RN1: sempre +30min
+      const horarioFim = new Date(horarioInicio.getTime() + DURACAO_RESERVA_MS); // RN1: sempre +30min
 
       // Verifica se mesa está disponível no horário (RE7.1)
       const conflito = await prisma.reserva.findFirst({
@@ -50,7 +51,7 @@ const createReserva = new Elysia()
       if (conflito) throw new MesaIndisponivelError();
 
       // Verifica horário consecutivo do mesmo usuário na mesma mesa (RN1 / RE3.1)
-      const trintaMinutesAntes = new Date(horarioInicio.getTime() - 30 * 60000);
+      const trintaMinutesAntes = new Date(horarioInicio.getTime() - DURACAO_RESERVA_MS);
       const consecutivo = await prisma.reserva.findFirst({
         where: {
           mesaId: body.mesaId,

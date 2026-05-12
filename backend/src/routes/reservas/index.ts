@@ -1,12 +1,12 @@
 import Elysia from 'elysia';
-import cancelarReserva from './cancel-reserva';
+import cancelarReserva from './cancelReserva';
 import confirmarPresenca from './confirmarPresenca';
-import createReserva from './create-reserva';
-import getMinhasReservas from './get-my-reservas';
-import getReservas from './get-reservas';
+import createReserva from './createReserva';
 import getDisponibilidade from './getDisponibilidade';
+import getMinhasReservas from './getMyReservas';
 import getRelatorio from './getRelatorio';
-import updateReserva from './update-reserva';
+import getReservas from './getReservas';
+import updateReserva from './updateReserva';
 
 const reservaGroup = new Elysia({ prefix: '/reservas' })
   .use(getDisponibilidade) // GET  /api/reservas/disponibilidade
