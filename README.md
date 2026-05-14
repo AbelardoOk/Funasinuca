@@ -58,6 +58,10 @@ BACKEND_PORT=3000
 FRONTEND_PORT=3001
 DESKTOP_PORT=3002
 
+# API Mercado Pago - https://www.mercadopago.com.br/developers/panel/credentials
+MP_PUBLIC_KEY= # Vai no front-end
+MP_ACCESS_TOKEN= # Vai no back-end
+
 # Banco de Dados
 DATABASE_URL="postgresql://dev_user:dev_password@postgres:5432/db?schema=public"
 
