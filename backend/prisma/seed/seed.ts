@@ -27,7 +27,7 @@ async function main() {
       nome: 'Administrador Chefe',
       email: 'admin@funasinuca.com.br',
       senha: senhaAdmHash,
-      cpf: '00000000000',
+      cpf: '00000000001',
       tipo: 'ADMINISTRADOR',
     },
   });
@@ -39,7 +39,7 @@ async function main() {
       nome: 'Atendente Balcão',
       email: 'balcao@funasinuca.com.br',
       senha: senhaPadrao,
-      cpf: '00000000000',
+      cpf: '00000000002',
       tipo: 'FUNCIONARIO',
     },
   });
@@ -51,7 +51,7 @@ async function main() {
       nome: 'João Cliente',
       email: 'cliente@email.com',
       senha: senhaPadrao,
-      cpf: '00000000000',
+      cpf: '00000000003',
       tipo: 'CLIENTE',
     },
   });

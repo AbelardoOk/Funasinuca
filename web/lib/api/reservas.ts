@@ -10,6 +10,16 @@ import {
 import { apiFetch } from './apiClient';
 
 export const reservaService = {
+  criarPagamento: (id: string, token: string) =>
+    apiFetch<ApiResponse<{ preferenceId: string; sandboxInitPoint: string }>>(
+      `/reservas/${id}/pagamento`,
+      {
+        method: 'POST',
+        token,
+        cache: 'no-store',
+      },
+    ),
+
   // Disponibilidade — qualquer autenticado
   getDisponibilidade: (horarioInicio: string, token: string) =>
     apiFetch<ApiResponse<(Mesa & { disponivel: boolean })[]>>('/reservas/disponibilidade', {
