@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from 'next/image';
 
 export default function Home() {
   return (
@@ -17,20 +17,20 @@ export default function Home() {
             To get started, edit the page.tsx file.
           </h1>
           <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
+            Looking for a starting point or more instructions? Head over to{' '}
             <a
               href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
               className="font-medium text-zinc-950 dark:text-zinc-50"
             >
               Templates
-            </a>{" "}
-            or the{" "}
+            </a>{' '}
+            or the{' '}
             <a
               href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
               className="font-medium text-zinc-950 dark:text-zinc-50"
             >
               Learning
-            </a>{" "}
+            </a>{' '}
             center.
           </p>
         </div>
@@ -58,6 +58,10 @@ export default function Home() {
           >
             Documentation
           </a>
+          {/* <BotaoPagamento
+            reservaId="0df9fb58-e44d-4fd8-9e20-9fb43f9747a7"
+            token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ZWQ1Y2YzMC02MGJhLTQxNWQtYjVlYS1kNzQ3YmMzODljNjEiLCJpYXQiOjE3Nzg3MzU4NTN9.9B4-0KG89IeQocX-vL8V812cn-up0-QZDmuorjbxN9Q"
+          /> */}
         </div>
       </main>
     </div>
