@@ -15,7 +15,7 @@ const auth = new Elysia({ name: 'auth' })
   .use(
     jwt({
       name: 'jwt',
-      secret: process.env.JWT_SECRET_KEY ?? '',
+      secret: process.env.JWT_KEY ?? '',
       schema: t.Object({
         userId: t.String({ format: 'uuid', error: 'Id precisa ser um UUID' }),
       }),
