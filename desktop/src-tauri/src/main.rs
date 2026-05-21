@@ -43,9 +43,39 @@ async fn register_command(payload: RegisterPayload) -> Result<serde_json::Value,
     Ok(json)
 }
 
+#[tauri::command]
+async fn get_reservas_command(token: String) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    
+    let res = client
+        .get("http://localhost:3000/api/reservas") 
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let json = res.json::<serde_json::Value>().await.map_err(|e| e.to_string())?;
+    Ok(json)
+}
+
+#[tauri::command]
+async fn get_minhas_reservas_command(token: String) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    
+    let res = client
+        .get("http://localhost:3000/api/reservas/minhas") 
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let json = res.json::<serde_json::Value>().await.map_err(|e| e.to_string())?;
+    Ok(json)
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![login_command, register_command])
+        .invoke_handler(tauri::generate_handler![login_command, register_command, get_reservas_command, get_minhas_reservas_command])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,25 +1,35 @@
 import { useState } from "react";
 import { userService } from "./lib/api/endpoints/users";
+import { Dashboard } from "./Dashboard";
+import { TipoUsuario } from "./lib/api/types/api";
 import "./App.css";
 
 interface LoginProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (nome: string, role: TipoUsuario) => void;
 }
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [userRole, setUserRole] = useState<TipoUsuario>("CLIENTE");
 
   return (
     <main className="container">
-      <h1>Sistema de Gestão Funasinuca</h1>
-      
       {!isLoggedIn ? (
-        <Login onLoginSuccess={() => setIsLoggedIn(true)} />
+        <Login onLoginSuccess={(nome, role) => {
+          setUserName(nome);
+          setUserRole(role);
+          setIsLoggedIn(true);
+        }} />
       ) : (
-        <div>
-          <h2>Bem-vindo ao Dashboard!</h2>
-          <button onClick={() => setIsLoggedIn(false)}>Sair</button>
-        </div>
+        <Dashboard 
+          onLogout={() => {
+            setIsLoggedIn(false);
+            localStorage.removeItem("token"); 
+          }} 
+          userName={userName} 
+          userRole={userRole} 
+        />
       )}
     </main>
   );
@@ -51,7 +61,10 @@ export function Login({ onLoginSuccess }: LoginProps) {
         if (response.data?.token) {
            localStorage.setItem("token", response.data.token);
         }
-        onLoginSuccess();
+        const nomeDoBackend = response.data?.userName || "Usuário";
+        const cargoDoBackend = response.data?.userRole || "CLIENTE";
+        
+        onLoginSuccess(nomeDoBackend, cargoDoBackend);
       } else {
         setStatus(response.error || "Dados incorretos");
       }

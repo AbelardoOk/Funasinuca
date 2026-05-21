@@ -6,7 +6,7 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
-export type TipoUsuario = 'CLIENTE' | 'FUNCIONARIO' | 'ADMIN';
+export type TipoUsuario = 'CLIENTE' | 'FUNCIONARIO' | 'ADMINISTRADOR';
 
 export interface Usuario {
   id: string;

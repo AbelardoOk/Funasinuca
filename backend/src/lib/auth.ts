@@ -58,7 +58,7 @@ const auth = new Elysia({ name: 'auth' })
 
       requireFuncionario: async () => {
         const user = await getAuthenticatedUser();
-        const allowed = [TipoUsuario.FUNCIONARIO, TipoUsuario.ADMINISTRADOR];
+        const allowed = ["FUNCIONARIO", "ADMINISTRADOR"];
         if (!allowed.includes(user.tipo)) {
           throw new UnauthorizedError('Acesso restrito a funcionários');
         }

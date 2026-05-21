@@ -3,7 +3,7 @@ import { ApiResponse, Usuario, TipoUsuario } from '../types/api';
 
 export const userService = {
   login: (email: string, senha: string) =>
-    apiFetch<ApiResponse<{ token: string; userRole: TipoUsuario }>>('login_command', { 
+    apiFetch<ApiResponse<{ token: string; userRole: TipoUsuario; userName?: string }>>('login_command', {
       email, 
       senha 
     }),
@@ -28,4 +28,5 @@ export interface RegisterData {
 export interface LoginResponseData {
   token: string;
   userRole: TipoUsuario;
+  userName?: string;
 }
