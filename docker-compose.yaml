@@ -88,6 +88,9 @@ services:
       - '${DESKTOP_PORT}:1420'
     env_file:
       - ./.env
+    volumes:
+      - .:/app
+      - /app/node_modules
     networks:
       - funasinuca_net
     depends_on:
