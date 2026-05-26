@@ -74,28 +74,28 @@ services:
     depends_on:
       - backend
 
-  desktop:
-    build:
-      context: ./desktop
-      dockerfile: dockerfile
-      network: host
-    container_name: desktop
-    restart: unless-stopped
-    dns:
-      - 8.8.8.8
-      - 1.1.1.1
-    ports:
-      - '${DESKTOP_PORT}:1420'
-    env_file:
-      - ./.env
-    volumes:
-      - .:/app
-      - /app/node_modules
-    networks:
-      - funasinuca_net
-    depends_on:
-      backend:
-        condition: service_healthy
+  #desktop:
+  #  build:
+  #    context: ./desktop
+  #    dockerfile: dockerfile
+  #    network: host
+  #  container_name: desktop
+  #  restart: unless-stopped
+  #  dns:
+  #    - 8.8.8.8
+  #    - 1.1.1.1
+  #  ports:
+  #    - '${DESKTOP_PORT}:1420'
+  #  env_file:
+  #    - ./.env
+  #  volumes:
+  #    - .:/app
+  #    - /app/node_modules
+  #  networks:
+  #    - funasinuca_net
+  #  depends_on:
+  #    backend:
+  #      condition: service_healthy
 
 volumes:
   postgres_data:
