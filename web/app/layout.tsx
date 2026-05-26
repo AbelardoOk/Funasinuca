@@ -1,45 +1,38 @@
-import type { Metadata, Viewport } from 'next';
-import { Archivo, Gasoek_One } from 'next/font/google';
-import './globals.css';
+/*Layout guarda oque é usado nas páginas do site -> Fontes e metadados */
+/*POV: Miguel, se estiver lendo isso, você é um tamanduá bandeira*/
 
-const gasoekBold = Gasoek_One({
-  variable: '--font-gasoek-one',
-  subsets: ['latin'],
-  weight: '400',
-});
+// "import type" traz apenas a TIPAGEM do Next.js
+// (Metadata = um "molde" que diz quais campos são válidos)
+import type { Metadata } from 'next'
 
-const ArchivoSans = Archivo({
-  variable: '--font-arquivo-sans',
-  subsets: ['latin'],
-  weight: 'variable',
-});
+import { Inter } from 'next/font/google'
+import './globals.css'
+
+// Configura a fonte: qual subset de caracteres usar
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Funasinuca',
-  description: 'Sistema para Agendamento de Mesas de Sinuca',
-  manifest: '/manifest.json', // PWA
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Funasinuca',
-  },
-};
-
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  themeColor: '#000000', // cor da barra do navegador no mobile
-};
-
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html
-      lang="pt-BR"
-      className={`${gasoekBold.variable} ${ArchivoSans.variable} h-full antialiased`}
-    >
-      <body className="min-h-full min-h-dvh flex flex-col overscroll-none">{children}</body>
-    </html>
-  );
+  description:
+    'Reserve sua mesa de sinuca no Batata+ de forma rápida',
 }
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode   // ReactNode = qualquer coisa renderizável no React
+}) {
+  return (
+    // Em TSX, o atributo HTML "class" se escreve "className"
+    <html lang="pt-BR">
+      {/*
+        A tag <body> recebe a classe da fonte (inter.className),
+        o que aplica a tipografia em todo o site.
+      */}
+      <body className={inter.className}>
+        {children}   {/* aqui entra o conteúdo de page.tsx */}
+      </body>
+    </html>
+  )
+}
+

@@ -1,26 +1,40 @@
-@import 'tailwindcss';
-
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --verde:        #22c55e;   
+  --verde-escuro: #15803d;
+  --preto:        #0a0a0a;
+  --cinza-escuro: #111827;
+  --cinza:        #374151;
+  --cinza-claro:  #9ca3af;
+  --branco:       #ffffff;
+  --fundo:        #0a0a0a;   /* fundo geral da página */
 }
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-arquivo-sans);
-  --font-bold: var(--font-gasoek-one);
+ 
+/* 
+   Remove margens/paddings que os
+   navegadores colocam por padrão.    */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+ 
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--fundo);
+  color: var(--branco);
+  font-family: 'Inter', sans-serif; /* fonte padrão do texto */
+  line-height: 1.6;
+  scroll-behavior: smooth; /* rola a página suavemente ao clicar em links âncora */
+}
+ 
+
+a {
+  color: inherit;       /* herda a cor do elemento pai */
+  text-decoration: none;
+}
+ 
+
+img {
+  max-width: 100%;
+  display: block;
 }
