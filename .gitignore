@@ -1,2 +1,76 @@
-node_modules/
+# =========================
+# Geral
+# =========================
+.DS_Store
+*.pem
+*.local
+*.log
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.tsbuildinfo
+*.trace
+*.zip
+*.tar.gz
+*.tgz
+*.bun
+
+# Logs
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Variáveis de ambiente
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# =========================
+# Dependências
+# =========================
+node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+package-lock.json
+
+# =========================
+# Backend (Elysia)
+# =========================
+backend/dist/
+backend/src/generated/prisma/
+
+# =========================
+# Web (Next.js)
+# =========================
+web/.next/
+web/out/
+web/build/
+web/coverage/
+web/.vercel/
+web/next-env.d.ts
+
+# =========================
+# Desktop (Tauri)
+# =========================
+desktop/dist/
+desktop/dist-ssr/
+desktop/src-tauri/target/
+desktop/src-tauri/WixTools/
+desktop/src-tauri/gen/
