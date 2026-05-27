@@ -21,7 +21,7 @@ export interface ReservaData {
   horarioInicio: string;
   horarioFim: string;
   statusPagamento: StatusPagamento;
-  mesa: { numero: number };
+  mesa: { id: string; numero: number };
   usuario: { nome: string };
 }
 
@@ -33,10 +33,10 @@ export interface CreateReservaPayload {
 }
 
 export interface UpdateReservaPayload {
-  horario_inicio?: string;
-  horario_fim?: string;
-  numero_pessoas?: number;
-  status?: string;
+  mesaId?: string;
+  horarioInicio?: string;
+  status?: StatusPagamento;
+  gatewayTransacaoId?: string;
 }
 
 export interface MesaDisponivel {
@@ -54,4 +54,28 @@ export interface CancelarData {
   reserva: ReservaData;
   reembolso: boolean;
   mensagem: string;
+}
+
+export type StatusMesa = 'LIVRE' | 'OCUPADA' | 'RESERVADA' | 'MANUTENCAO';
+
+export interface Mesa {
+  id: string;
+  numero: number;
+  capacidade: number;
+  status: StatusMesa;
+  ativa: boolean;
+  criadoEm?: string;
+  atualizadoEm?: string;
+}
+
+export interface CreateMesaPayload {
+  numero: number;
+  capacidade: number;
+}
+
+export interface UpdateMesaPayload {
+  numero?: number;
+  capacidade?: number;
+  status?: StatusMesa;
+  ativa?: boolean;
 }

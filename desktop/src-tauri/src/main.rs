@@ -22,11 +22,27 @@ pub struct CreateReservaPayload {
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateReservaPayload {
     horario_inicio: Option<String>,
     horario_fim: Option<String>,
     numero_pessoas: Option<u32>,
     status: Option<String>,
+    pub mesa_id: Option<String>,
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct CreateMesaPayload {
+    numero: u32,
+    capacidade: u32,
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+pub struct UpdateMesaPayload {
+    numero: Option<u32>,
+    capacidade: Option<u32>,
+    status: Option<String>,
+    ativa: Option<bool>,
 }
 
 const BASE_URL: &str = "http://localhost:3000/api";
@@ -261,11 +277,110 @@ async fn update_reserva_command(
     payload: UpdateReservaPayload,
     token: String,
 ) -> Result<serde_json::Value, String> {
+
+    // println!("=== [Tauri Command] update_reserva_command ===");
+    // println!("ID recebido do Front: {}", id);
+
     let client = reqwest::Client::new();
     let res = client
         .patch(format!("{}/reservas/{}", BASE_URL, id))
         .header("Authorization", format!("Bearer {}", token))
         .json(&payload)
+        .send()
+        .await
+        .map_err(|e| {
+            println!("Erro ao enviar requisição HTTP: {}", e);
+            e.to_string()
+        })?;
+    // println!("Status HTTP do Elysia: {}", res.status());
+
+    let json_res = res.json::<serde_json::Value>().await.map_err(|e| e.to_string())?;
+
+    // println!("Resposta JSON enviada de volta ao Front: {:?}", json_res);
+    // println!("===============================================");
+
+    Ok(json_res)
+}
+
+// ─── Mesas (Novos Comandos do Arquivo Anexado) ──────────────────────────────
+
+/// getAll — Busca todas as mesas aplicando filtros opcionais por query parameters
+#[tauri::command]
+async fn get_mesas_command(
+    token: String,
+    status: Option<String>,
+    ativa: Option<String>,
+    numero: Option<String>,
+) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let mut req = client
+        .get(format!("{}/mesas", BASE_URL))
+        .header("Authorization", format!("Bearer {}", token));
+
+    let mut query_params: Vec<(&str, String)> = vec![];
+    if let Some(s) = status { query_params.push(("status", s)); }
+    if let Some(a) = ativa  { query_params.push(("ativa", a)); }
+    if let Some(n) = numero { query_params.push(("numero", n)); }
+
+    if !query_params.is_empty() {
+        req = req.query(&query_params);
+    }
+
+    req.send()
+        .await
+        .map_err(|e| e.to_string())?
+        .json::<serde_json::Value>()
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// create — Registra uma nova mesa no banco através de um método POST
+#[tauri::command]
+async fn create_mesa_command(
+    payload: CreateMesaPayload,
+    token: String,
+) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let res = client
+        .post(format!("{}/mesas", BASE_URL))
+        .header("Authorization", format!("Bearer {}", token))
+        .json(&payload)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    res.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+}
+
+/// update — Altera parcialmente dados estruturais ou estados de uma mesa específica via PATCH
+#[tauri::command]
+async fn update_mesa_command(
+    id: String,
+    payload: UpdateMesaPayload,
+    token: String,
+) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let res = client
+        .patch(format!("{}/mesas/{}", BASE_URL, id))
+        .header("Authorization", format!("Bearer {}", token))
+        .json(&payload)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    res.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+}
+
+/// delete — Remove de forma lógica ou física uma mesa do sistema com base no ID fornecido
+#[tauri::command]
+async fn delete_mesa_command(
+    id: String,
+    token: String,
+) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let res = client
+        .delete(format!("{}/mesas/{}", BASE_URL, id))
+        .header("Authorization", format!("Bearer {}", token))
         .send()
         .await
         .map_err(|e| e.to_string())?;
@@ -295,6 +410,12 @@ fn main() {
             confirmar_presenca_command,
             cancelar_reserva_command,
             update_reserva_command,
+
+            // Mesas (Adicionados ao Handler do Tauri)
+            get_mesas_command,
+            create_mesa_command,
+            update_mesa_command,
+            delete_mesa_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
