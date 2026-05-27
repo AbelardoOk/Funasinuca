@@ -35,4 +35,11 @@ export const userService = {
       method: 'POST',
       data: { nome, cpf, email, senha },
     }),
+
+  validate: (token: string) =>
+    apiFetch<ApiResponse<{ ok: boolean; userId: string }>>('/usuarios/validate', {
+      method: 'GET',
+      token,
+      cache: 'no-store',
+    }),
 };

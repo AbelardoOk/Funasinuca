@@ -1,3 +1,4 @@
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION};
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct LoginPayload {
     email: String,
@@ -57,6 +58,33 @@ async fn register_command(payload: RegisterPayload) -> Result<serde_json::Value,
         .map_err(|e| e.to_string())?;
 
     res.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn validate_command(token: String) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+
+    // Monta o cabeçalho de Autorização (Padrão Bearer Token)
+    let mut headers = HeaderMap::new();
+    let auth_value = format!("Bearer {}", token);
+
+    headers.insert(
+        AUTHORIZATION,
+        HeaderValue::from_str(&auth_value).map_err(|e| format!("Erro ao gerar header: {}", e))?
+    );
+
+    // Faz uma requisição GET para o endpoint de validação do Elysia
+    let res = client
+        .get(format!("{}/usuarios/validate", BASE_URL))
+        .headers(headers)
+        .send()
+        .await
+        .map_err(|e| format!("Falha na requisição: {}", e))?;
+
+    // Captura o JSON de resposta (que conterá o { ok: true, userId: ... })
+    res.json::<serde_json::Value>()
+        .await
+        .map_err(|e| format!("Falha ao ler resposta do servidor: {}", e))
 }
 
 // ─── Reservas ────────────────────────────────────────────────────────────────
@@ -253,6 +281,7 @@ fn main() {
             // Auth
             login_command,
             register_command,
+            validate_command,
 
             // Reservas — leitura
             get_reservas_command,
