@@ -1,4 +1,4 @@
-const BASE_URL = `${process.env.API_URL}/api`;
+const BASE_URL = `/api`;
 
 interface ApiOptions extends Omit<RequestInit, 'body'> {
   data?: unknown;

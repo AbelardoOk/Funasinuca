@@ -30,6 +30,7 @@ const app = new Elysia()
             'Access-Control-Allow-Origin',
             'Origin',
           ],
+          origin: ['http://localhost:3001', 'http://localhost:3002'],
         }),
       )
       .use(usuariosGroup)

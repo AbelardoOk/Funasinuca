@@ -1,9 +1,17 @@
 import type { NextConfig } from 'next';
 
+console.log('>>> API_URL:', process.env.API_URL);
+
 const nextConfig: NextConfig = {
   output: 'standalone',
-  env: {
-    API_URL: process.env.API_URL,
+  async rewrites() {
+    console.log('>>> rewrite destination:', `${process.env.API_URL}/api/:path*`);
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${process.env.API_URL}/api/:path*`,
+      },
+    ];
   },
 };
 
