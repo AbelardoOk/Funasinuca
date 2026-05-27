@@ -6,24 +6,26 @@ import mesasGroup from './routes/mesas';
 import reservaGroup from './routes/reservas';
 import usuariosGroup from './routes/usuario';
 
+const PORT = Number(process.env.PORT) || 3000;
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['http://localhost:3001', 'http://localhost:3002', 'http://localhost:1420'];
+
 const app = new Elysia()
   .error({ UNAUTHORIZED: UnauthorizedError })
   .onError(({ code, error, set }) => {
-    switch (code) {
-      case 'UNAUTHORIZED':
-        set.status = 401;
-    }
-
-    return { ok: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+    if (code === 'UNAUTHORIZED') set.status = 401;
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : 'Erro desconhecido',
+    };
   })
-
   .get('/health', () => ({ status: 'ok' }))
-
   .group('/api', (app) =>
     app
       .use(
         cors({
-          // Configurado para aceitar qualquer origem
           methods: ['DELETE', 'GET', 'PATCH', 'POST', 'OPTIONS'],
           allowedHeaders: [
             'Content-Type',
@@ -31,21 +33,17 @@ const app = new Elysia()
             'Access-Control-Allow-Origin',
             'Origin',
           ],
-          origin: ['http://localhost:3001', 'http://localhost:3002'],
+          origin: allowedOrigins,
         }),
       )
       .use(usuariosGroup)
       .use(mesasGroup)
       .use(reservaGroup),
   )
+  .listen(PORT);
 
-  .listen(3000);
-
-// Abaixo está a tarefa que realiza a cada minuto verificando as reservas
 iniciarJobs();
 
-// no index.ts, antes do .listen()
-// console.log(app.routes.map((r) => `${r.method} ${r.path}`));
 console.log(`🦊 Backend rodando em ${app.server?.hostname}:${app.server?.port}`);
 
 export default app;
