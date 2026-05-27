@@ -5,6 +5,9 @@ import { MetricsBar } from './components/MetricsBar';
 import './Dashboard.css';
 import { reservasService } from './lib/api/endpoints/reservas';
 import { ReservaData, UpdateReservaPayload } from './lib/api/types';
+import { ReservasManagement } from './ReservasManagement';
+import { ActiveTab, Sidebar } from './Sidebar';
+import { UsersManagement } from './UsersManagement';
 
 type TipoUsuario = 'CLIENTE' | 'FUNCIONARIO' | 'ADMINISTRADOR';
 
@@ -15,10 +18,10 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onLogout, userName, userRole }: DashboardProps) {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  // Modais controladores globais
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -49,39 +52,22 @@ export function Dashboard({ onLogout, userName, userRole }: DashboardProps) {
     carregarDadosDoBanco();
   }, [userRole]);
 
-  const handleConfirmarPresenca = async () => {
-    if (!selectedReserva) return;
-    setModalActionLoading(true);
-    const response = await reservasService.confirmarPresenca(selectedReserva.id);
-    if (response.ok) {
-      await carregarDadosDoBanco();
-      setIsEditModalOpen(false);
-    } else {
-      setModalErro(response.message || 'Erro ao confirmar presença.');
-    }
-    setModalActionLoading(false);
+  // Handlers de Ação Rápida
+  const handleConfirmarPresenca = async (res: ReservaData) => {
+    const response = await reservasService.confirmarPresenca(res.id);
+    if (response.ok) await carregarDadosDoBanco();
   };
 
-  const handleCancelarReserva = async () => {
-    if (!selectedReserva) return;
-    if (!window.confirm('Tem certeza que deseja cancelar esta reserva?')) return;
-
-    setModalActionLoading(true);
-    const response = await reservasService.cancelar(selectedReserva.id);
-    if (response.ok) {
-      await carregarDadosDoBanco();
-      setIsEditModalOpen(false);
-    } else {
-      setModalErro(response.message || 'Erro ao cancelar reserva.');
+  const handleCancelarReserva = async (res: ReservaData) => {
+    if (window.confirm(`Deseja cancelar a reserva de ${res.usuario.nome}?`)) {
+      const response = await reservasService.cancelar(res.id);
+      if (response.ok) await carregarDadosDoBanco();
     }
-    setModalActionLoading(false);
   };
 
   const handleAtualizarReserva = async (payload: UpdateReservaPayload) => {
     if (!selectedReserva) return;
     setModalActionLoading(true);
-    setModalErro('');
-
     const response = await reservasService.atualizar(selectedReserva.id, payload);
     if (response.ok) {
       await carregarDadosDoBanco();
@@ -92,7 +78,7 @@ export function Dashboard({ onLogout, userName, userRole }: DashboardProps) {
     setModalActionLoading(false);
   };
 
-  // Lógica de manipulação de datas estendida
+  // Logica do Calendário
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
 
@@ -137,147 +123,157 @@ export function Dashboard({ onLogout, userName, userRole }: DashboardProps) {
     }
   };
 
-  return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div className="header-brand">Funasinuca</div>
-        <div className="header-user">
-          <span className="user-badge">
-            {userName} - {userRole}
-          </span>
-          <button className="btn-logout" onClick={onLogout}>
-            Sair
-          </button>
-        </div>
-      </header>
+  // 🚀 Cláusula de Barreira 1: Estado de Carregamento estruturado antes do return complexo
+  if (loading) {
+    return (
+      <div
+        className="dashboard-root-layout"
+        style={{ justifyContent: 'center', alignItems: 'center' }}
+      >
+        <div className="loading-container">Carregando dados unificados do sistema...</div>
+      </div>
+    );
+  }
 
-      {loading ? (
-        <div className="loading-container">Carregando dados...</div>
-      ) : erroMensagem ? (
+  // 🚀 Cláusula de Barreira 2: Tratamento visual de erros críticos da API
+  if (erroMensagem) {
+    return (
+      <div
+        className="dashboard-root-layout"
+        style={{ justifyContent: 'center', alignItems: 'center' }}
+      >
         <div className="error-container">{erroMensagem}</div>
-      ) : (
-        <main className="dashboard-content">
-          {/* SEÇÃO DA LINHA SUPERIOR (MÉTRICAS + BOTÃO CRIAR) */}
-          <div className="dashboard-top-bar">
-            <MetricsBar reservas={reservas} />
-            <button className="btn-create-reservation" onClick={() => setIsCreateModalOpen(true)}>
-              + Nova Reserva
+      </div>
+    );
+  }
+
+  // 🚀 Return principal limpo, sem ternários complexos aninhados
+  return (
+    <div className="dashboard-root-layout">
+      {/* MENU LATERAL GERENCIAL */}
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} userRole={userRole} />
+
+      <div className="dashboard-main-viewport">
+        <header className="dashboard-header">
+          <div className="header-breadcrumbs">
+            <span>Sistema</span> /{' '}
+            <strong style={{ textTransform: 'capitalize' }}>{activeTab}</strong>
+          </div>
+          <div className="header-user">
+            <span className="user-badge">{userName}</span>
+            <button className="btn-logout" onClick={onLogout}>
+              Sair
             </button>
           </div>
+        </header>
 
-          <div className="dashboard-grid-layout">
-            <section className="calendar-section">
-              <div className="calendar-controls">
-                <button onClick={handlePrevMonth}>&lt;</button>
-                <h3>
-                  {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
-                </h3>
-                <button onClick={handleNextMonth}>&gt;</button>
+        <main className="dashboard-scrollable-content">
+          {/* ABA 1: VISÃO GERAL (DASHBOARD + CALENDÁRIO) */}
+          {activeTab === 'dashboard' && (
+            <div className="dashboard-content animate-fade-in">
+              <div className="dashboard-top-bar">
+                <MetricsBar reservas={reservas} />
+                <button
+                  className="btn-create-reservation"
+                  onClick={() => setIsCreateModalOpen(true)}
+                >
+                  Nova Reserva
+                </button>
               </div>
 
-              <div className="calendar-grid">
-                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
-                  <div key={d} className="calendar-day-header">
-                    {d}
+              <div className="dashboard-grid-layout">
+                <section className="calendar-section">
+                  <div className="calendar-controls">
+                    <button onClick={handlePrevMonth}>&lt;</button>
+                    <h3>
+                      {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                    </h3>
+                    <button onClick={handleNextMonth}>&gt;</button>
                   </div>
-                ))}
-                {Array.from({ length: firstDayOfMonth }).map((_, i) => (
-                  <div key={`empty-${i}`} />
-                ))}
-                {Array.from({ length: daysInMonth }).map((_, i) => {
-                  const day = i + 1;
-                  const isToday =
-                    new Date().toDateString() ===
-                    new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
-                  const isSelected =
-                    selectedDate.toDateString() ===
-                    new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
-                  const temReserva = hasReservation(day);
 
-                  return (
-                    <div
-                      key={day}
-                      className={`calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
-                      onClick={() =>
-                        setSelectedDate(
-                          new Date(currentDate.getFullYear(), currentDate.getMonth(), day),
-                        )
-                      }
-                    >
-                      <span className="day-number">{day}</span>
-                      {temReserva && <span className="reservation-dot"></span>}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+                  <div className="calendar-grid">
+                    {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
+                      <div key={d} className="calendar-day-header">
+                        {d}
+                      </div>
+                    ))}
+                    {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                      <div key={`empty-${i}`} />
+                    ))}
+                    {Array.from({ length: daysInMonth }).map((_, i) => {
+                      const day = i + 1;
+                      const isToday =
+                        new Date().toDateString() ===
+                        new Date(
+                          currentDate.getFullYear(),
+                          currentDate.getMonth(),
+                          day,
+                        ).toDateString();
+                      const isSelected =
+                        selectedDate.toDateString() ===
+                        new Date(
+                          currentDate.getFullYear(),
+                          currentDate.getMonth(),
+                          day,
+                        ).toDateString();
+                      const temReserva = hasReservation(day);
 
-            <section className="reservations-section">
-              <h2>Reservas para {selectedDate.toLocaleDateString('pt-BR')}</h2>
-              <div className="cards-container">
-                {reservasDoDia.length === 0 ? (
-                  <p className="empty-state">Sem reservas para esse dia.</p>
-                ) : (
-                  reservasDoDia.map((reserva) => (
-                    <div key={reserva.id} className="reserva-card">
-                      <div className="card-time">
-                        {formatTime(reserva.horarioInicio)} - {formatTime(reserva.horarioFim)}
-                      </div>
-                      <div className="card-info">
-                        <strong>Mesa {reserva.mesa.numero}</strong>
-                        {/* Exibe o nome cadastrado do usuário dinamicamente */}
-                        <span>{reserva.usuario?.nome || 'Usuário não identificado'}</span>
-                      </div>
-                      <div className="card-status">
-                        <span
-                          className="status-dot"
-                          style={{ backgroundColor: getStatusColor(reserva.statusPagamento) }}
-                          title={reserva.statusPagamento}
-                        ></span>
-                      </div>
+                      return (
+                        <div
+                          key={day}
+                          className={`calendar-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`}
+                          onClick={() =>
+                            setSelectedDate(
+                              new Date(currentDate.getFullYear(), currentDate.getMonth(), day),
+                            )
+                          }
+                        >
+                          <span className="day-number">{day}</span>
+                          {temReserva && <span className="reservation-dot"></span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
 
-                      {/* Painel de ações dinâmico e flexível */}
-                      <div className="card-actions-wrapper">
-                        {(userRole === 'ADMINISTRADOR' || userRole === 'FUNCIONARIO') && (
-                          <>
-                            {/* Botão de presença rápida se não estiver cancelado */}
+                <section className="reservations-section">
+                  <h2>Reservas para {selectedDate.toLocaleDateString('pt-BR')}</h2>
+                  <div className="cards-container">
+                    {reservasDoDia.length === 0 ? (
+                      <p className="empty-state">Sem reservas para esse dia.</p>
+                    ) : (
+                      reservasDoDia.map((reserva) => (
+                        <div key={reserva.id} className="reserva-card">
+                          <div className="card-time">{formatTime(reserva.horarioInicio)}</div>
+                          <div className="card-info">
+                            <strong>Mesa {reserva.mesa.numero}</strong>
+                            <span>{reserva.usuario?.nome || 'Balcão'}</span>
+                          </div>
+                          <div className="card-status">
+                            <span
+                              className="status-dot"
+                              style={{ backgroundColor: getStatusColor(reserva.statusPagamento) }}
+                            ></span>
+                          </div>
+
+                          <div className="card-actions-wrapper">
                             {reserva.statusPagamento !== 'CANCELADO' &&
                               !reserva.presencaConfirmada && (
                                 <button
                                   className="btn-quick-action btn-quick-success"
-                                  title="Confirmar Presença"
-                                  onClick={async () => {
-                                    setSelectedReserva(reserva);
-                                    const response = await reservasService.confirmarPresenca(
-                                      reserva.id,
-                                    );
-                                    if (response.ok) await carregarDadosDoBanco();
-                                  }}
+                                  onClick={() => handleConfirmarPresenca(reserva)}
                                 >
                                   Confirmar
                                 </button>
                               )}
-
-                            {/* Botão de cancelamento rápido */}
                             {reserva.statusPagamento !== 'CANCELADO' && (
                               <button
                                 className="btn-quick-action btn-quick-danger"
-                                title="Cancelar Reserva"
-                                onClick={async () => {
-                                  if (
-                                    window.confirm(
-                                      `Deseja cancelar a reserva de ${reserva.usuario.nome}?`,
-                                    )
-                                  ) {
-                                    const response = await reservasService.cancelar(reserva.id);
-                                    if (response.ok) await carregarDadosDoBanco();
-                                  }
-                                }}
+                                onClick={() => handleCancelarReserva(reserva)}
                               >
                                 Cancelar
                               </button>
                             )}
-
                             <button
                               className="btn-edit"
                               onClick={() => {
@@ -287,37 +283,53 @@ export function Dashboard({ onLogout, userName, userRole }: DashboardProps) {
                             >
                               Editar
                             </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </section>
               </div>
-            </section>
-          </div>
-        </main>
-      )}
+            </div>
+          )}
 
-      {/* MODAL PARA FAZER CADASTRADOS ASSÍNCRONOS */}
+          {/* ABA 2: GERENCIAMENTO DE USUÁRIOS NO BANCO */}
+          {activeTab === 'usuarios' && <UsersManagement userRole={userRole} />}
+
+          {/* ABA 3: GERENCIAMENTO HISTÓRICO DE RESERVAS E CAIXA */}
+          {activeTab === 'reservas' && <ReservasManagement userRole={userRole} />}
+
+          {/* ABA 4: PLACEHOLDER PARA GERENCIAMENTO DE MESAS */}
+          {activeTab === 'mesas' && (
+            <div className="management-panel">
+              <h1>Estrutura de Mesas</h1>
+              <p>
+                Módulo para ativação/desativação física de mesas de snooker (Disponível na próxima
+                release).
+              </p>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* MODAL PARA FAZER CADASTROS ASSÍNCRONOS */}
       <CreateReservationModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={carregarDadosDoBanco}
       />
 
-      {/* MODAL PARA GERENCIAMENTO DE OPERAÇÕES */}
+      {/* MODAL PARA OPERAÇÕES ADMINISTRATIVAS CIRÚRGICAS */}
       <EditReservationModal
         isOpen={isEditModalOpen}
         reserva={selectedReserva}
         onClose={() => {
           setIsEditModalOpen(false);
           setSelectedReserva(null);
-          setModalErro('');
         }}
         onUpdate={handleAtualizarReserva}
-        onConfirmPresence={handleConfirmarPresenca}
-        onCancelReserva={handleCancelarReserva}
+        onConfirmPresence={() => handleConfirmarPresenca(selectedReserva!)}
+        onCancelReserva={() => handleCancelarReserva(selectedReserva!)}
         modalActionLoading={modalActionLoading}
         modalErro={modalErro}
       />

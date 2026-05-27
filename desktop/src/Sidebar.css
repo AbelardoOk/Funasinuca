@@ -1,0 +1,105 @@
+/* ==========================================================================
+   SIDEBAR (macOS Navigation Style)
+   ========================================================================== */
+.sidebar-container {
+  width: 240px;
+  min-width: 240px; /* impede encolhimento indesejado */
+  background-color: #f5f5f7;
+  color: #1d1d1f;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  border-right: 1px solid rgba(0, 0, 0, 0.07);
+  flex-shrink: 0;
+  padding: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-brand {
+  padding: 18px 12px 28px 12px;
+}
+
+.sidebar-brand h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  color: #1d1d1f;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role-indicator {
+  font-size: 0.68rem;
+  background-color: #e5e5ea;
+  padding: 3px 8px;
+  border-radius: 6px;
+  color: #86868b;
+  text-transform: uppercase;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 6px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.menu-divider {
+  font-size: 0.7rem;
+  color: #86868b;
+  font-weight: 600;
+  margin: 20px 0 6px 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  color: #48484a;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.92rem;
+  font-weight: 500;
+  width: 100%;
+  min-width: 0;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+}
+
+.menu-item.active {
+  background-color: #0071e3;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.menu-icon {
+  font-size: 1rem;
+  opacity: 0.8;
+  flex-shrink: 0; /* ícone nunca encolhe */
+}
+
+.menu-item.active .menu-icon {
+  opacity: 1;
+}

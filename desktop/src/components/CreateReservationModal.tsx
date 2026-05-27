@@ -21,7 +21,7 @@ export function CreateReservationModal({
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
   const [selectedMesaId, setSelectedMesaId] = useState('');
-  const [selectedUsuarioId, setSelectedUsuarioId] = useState(''); // 🚀 Novo estado para o cliente
+  const [selectedUsuarioId, setSelectedUsuarioId] = useState('');
   const [dataReserva, setDataReserva] = useState('');
   const [horaReserva, setHoraReserva] = useState('');
   const [numPessoas, setNumPessoas] = useState(2);
@@ -49,7 +49,6 @@ export function CreateReservationModal({
         }
         setLoadingMesas(false);
 
-        // 🚀 Carrega usuários cadastrados no banco
         const resUsers = await userService.getAll();
         if (resUsers.ok && resUsers.data) {
           setUsuarios(resUsers.data);

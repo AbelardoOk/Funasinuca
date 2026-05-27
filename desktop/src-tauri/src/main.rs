@@ -30,6 +30,7 @@ pub struct UpdateReservaPayload {
     numero_pessoas: Option<u32>,
     status: Option<String>,
     pub mesa_id: Option<String>,
+    pub preco: Option<f64>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -44,6 +45,14 @@ pub struct UpdateMesaPayload {
     capacidade: Option<u32>,
     status: Option<String>,
     ativa: Option<bool>,
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateUsuarioPayload {
+    pub nome: Option<String>,
+    pub email: Option<String>,
+    pub role: Option<String>,
 }
 
 const BASE_URL: &str = "http://localhost:3000/api";
@@ -102,6 +111,55 @@ async fn validate_command(token: String) -> Result<serde_json::Value, String> {
     res.json::<serde_json::Value>()
         .await
         .map_err(|e| format!("Falha ao ler resposta do servidor: {}", e))
+}
+
+// ─── Gerenciamento de Usuários ──────────────────────────────
+
+/// getAll — Retorna a lista de todos os usuários do sistema (Requer permissão funcionario)
+#[tauri::command]
+async fn get_usuarios_command(token: String) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let res = client
+        .get(format!("{}/usuarios", BASE_URL))
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    res.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+}
+
+/// update — Atualiza dados parciais ou cargo (role) de um usuário específico via PATCH
+#[tauri::command]
+async fn update_usuario_command(
+    id: String,
+    payload: UpdateUsuarioPayload,
+    token: String,
+) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let res = client
+        .patch(format!("{}/usuarios/{}", BASE_URL, id))
+        .header("Authorization", format!("Bearer {}", token))
+        .json(&payload)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    res.json::<serde_json::Value>().await.map_err(|e| e.to_string())
+}
+
+/// delete — Remove de forma definitiva uma credencial do sistema baseado no ID
+#[tauri::command]
+async fn delete_usuario_command(id: String, token: String) -> Result<serde_json::Value, String> {
+    let client = reqwest::Client::new();
+    let res = client
+        .delete(format!("{}/usuarios/{}", BASE_URL, id))
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    res.json::<serde_json::Value>().await.map_err(|e| e.to_string())
 }
 
 // ─── Reservas ────────────────────────────────────────────────────────────────
@@ -398,6 +456,11 @@ fn main() {
             login_command,
             register_command,
             validate_command,
+
+            // Gerenciamento de Usuários (Novos manipuladores registrados)
+            get_usuarios_command,
+            update_usuario_command,
+            delete_usuario_command,
 
             // Reservas — leitura
             get_reservas_command,

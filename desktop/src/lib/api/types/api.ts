@@ -11,7 +11,8 @@ export interface Usuario {
   id: string;
   nome: string;
   email: string;
-  role: TipoUsuario;
+  tipo: TipoUsuario;
+  cpf: string;
 }
 
 export type StatusPagamento = 'PENDENTE' | 'PAGO' | 'CANCELADO';
@@ -24,6 +25,7 @@ export interface ReservaData {
   mesa: { id: string; numero: number };
   usuario: { nome: string };
   presencaConfirmada: boolean;
+  preco: number;
 }
 
 export interface CreateReservaPayload {
@@ -34,10 +36,12 @@ export interface CreateReservaPayload {
 }
 
 export interface UpdateReservaPayload {
-  mesaId?: string;
   horarioInicio?: string;
-  status?: StatusPagamento;
-  gatewayTransacaoId?: string;
+  horarioFim?: string;
+  numeroPessoas?: number;
+  status?: string;
+  mesaId?: string;
+  preco?: number;
 }
 
 export interface MesaDisponivel {
@@ -79,4 +83,10 @@ export interface UpdateMesaPayload {
   capacidade?: number;
   status?: StatusMesa;
   ativa?: boolean;
+}
+
+export interface UpdateUsuarioPayload {
+  nome?: string;
+  email?: string;
+  role?: TipoUsuario;
 }

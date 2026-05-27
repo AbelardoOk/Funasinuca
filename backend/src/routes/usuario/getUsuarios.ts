@@ -7,8 +7,8 @@ const getUsuarios = new Elysia()
   .use(prisma)
   .get(
     '/',
-    async ({ requireAdmin, prisma, query }) => {
-      await requireAdmin();
+    async ({ requireFuncionario, prisma, query }) => {
+      await requireFuncionario();
 
       const usuarios = await prisma.usuario.findMany({
         where: {
