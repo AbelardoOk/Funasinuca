@@ -1,25 +1,42 @@
 import cron from 'node-cron';
 import { prismaClient as prisma } from '../lib/db';
 
+let rodando = false;
+
 export const iniciarJobs = () => {
   cron.schedule('* * * * *', async () => {
-    const agora = new Date();
+    if (rodando) return;
+    rodando = true;
 
-    await prisma.reserva.updateMany({
-      where: {
-        statusPagamento: 'PENDENTE',
-        criadoEm: { lt: new Date(agora.getTime() - 30 * 60000) },
-      },
-      data: { statusPagamento: 'CANCELADO' },
-    });
+    try {
+      const agora = new Date();
 
-    await prisma.reserva.updateMany({
-      where: {
-        statusPagamento: 'PAGO',
-        presencaConfirmada: false,
-        horarioInicio: { lt: new Date(agora.getTime() - 10 * 60000) },
-      },
-      data: { statusPagamento: 'CANCELADO' },
-    });
+      const { count: canceladosPendentes } = await prisma.reserva.updateMany({
+        where: {
+          statusPagamento: 'PENDENTE',
+          criadoEm: { lt: new Date(agora.getTime() - 30 * 60_000) },
+        },
+        data: { statusPagamento: 'CANCELADO' },
+      });
+
+      const { count: canceladosNoShow } = await prisma.reserva.updateMany({
+        where: {
+          statusPagamento: 'PAGO',
+          presencaConfirmada: false,
+          horarioInicio: { lt: new Date(agora.getTime() - 10 * 60_000) },
+        },
+        data: { statusPagamento: 'CANCELADO' },
+      });
+
+      if (canceladosPendentes > 0 || canceladosNoShow > 0) {
+        console.log(
+          `[Job] ${agora.toISOString()} — pendentes: ${canceladosPendentes}, no-show: ${canceladosNoShow}`,
+        );
+      }
+    } catch (err) {
+      console.error('[Job] Erro ao executar job de cancelamento:', err);
+    } finally {
+      rodando = false;
+    }
   });
 };

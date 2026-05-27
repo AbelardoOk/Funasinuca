@@ -1,5 +1,6 @@
 import cors from '@elysiajs/cors';
 import { Elysia } from 'elysia';
+import { iniciarJobs } from './jobs/reservaJobs';
 import { UnauthorizedError } from './lib/auth';
 import mesasGroup from './routes/mesas';
 import reservaGroup from './routes/reservas';
@@ -41,7 +42,7 @@ const app = new Elysia()
   .listen(3000);
 
 // Abaixo está a tarefa que realiza a cada minuto verificando as reservas
-// iniciarJobs();
+iniciarJobs();
 
 // no index.ts, antes do .listen()
 // console.log(app.routes.map((r) => `${r.method} ${r.path}`));
