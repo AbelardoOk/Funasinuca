@@ -14,6 +14,7 @@ pub struct RegisterPayload {
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateReservaPayload {
     mesa_id: String,
     horario_inicio: String,

@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { mesasService } from '../lib/api/endpoints/mesas';
-import { MesaDisponivel, ReservaData, UpdateReservaPayload } from '../lib/api/types';
+import {
+  MesaDisponivel,
+  ReservaData,
+  StatusPagamento,
+  UpdateReservaPayload,
+} from '../lib/api/types';
 
 interface EditReservationModalProps {
   isOpen: boolean;
@@ -30,10 +35,12 @@ export function EditReservationModal({
   const [novaMesaId, setNovaMesaId] = useState('');
   const [novaData, setNovaData] = useState('');
   const [novoHorario, setNovoHorario] = useState('');
+  const [novoStatus, setNovoStatus] = useState<StatusPagamento>('PENDENTE'); // 🚀 Novo estado
 
   useEffect(() => {
     if (reserva) {
       setNovaMesaId(reserva.mesa.id || '');
+      setNovoStatus(reserva.statusPagamento); // 🚀 Inicializa com o valor atual do banco
       if (reserva.horarioInicio) {
         const [dataParte, horaParte] = reserva.horarioInicio.split('T');
         setNovaData(dataParte);
@@ -80,7 +87,7 @@ export function EditReservationModal({
     onUpdate({
       mesaId: novaMesaId || undefined,
       horarioInicio: dataLocalISO,
-      status: reserva.statusPagamento,
+      status: novoStatus, // 🚀 Passando o status alterado no payload de update para o Rust
     });
   };
 
@@ -95,16 +102,33 @@ export function EditReservationModal({
         </div>
         <form onSubmit={handleFormSubmit} className="modal-form">
           <div className="modal-body">
-            <div className={`form-section-readonly ${isEditing ? 'blur-dim' : ''}`}>
+            <div className="form-section-readonly">
               <div className="info-row">
                 <span>Cliente</span>
                 <strong>{reserva.usuario.nome}</strong>
               </div>
+
+              {/* 🚀 MUDANÇA AQUI: Agora exibe badge em modo leitura ou select em modo edição */}
               <div className="info-row">
                 <span>Status do Pagamento</span>
-                <span className={`status-badge status-${reserva.statusPagamento.toLowerCase()}`}>
-                  {reserva.statusPagamento}
-                </span>
+                {!isEditing ? (
+                  <span className={`status-badge status-${reserva.statusPagamento.toLowerCase()}`}>
+                    {reserva.statusPagamento}
+                  </span>
+                ) : (
+                  <select
+                    value={novoStatus}
+                    onChange={(e) => setNovoStatus(e.target.value as StatusPagamento)}
+                    disabled={modalActionLoading}
+                    className="modal-select"
+                    style={{ width: 'auto', padding: '4px 8px' }}
+                    required
+                  >
+                    <option value="PENDENTE">PENDENTE</option>
+                    <option value="PAGO">PAGO</option>
+                    <option value="CANCELADO">CANCELADO</option>
+                  </select>
+                )}
               </div>
             </div>
 
@@ -129,7 +153,7 @@ export function EditReservationModal({
                     required
                   >
                     <option value="" disabled>
-                      {loadingMesas ? 'Carregando...' : 'Selecione uma mesa'}
+                      Selecione uma mesa
                     </option>
                     {mesas.map((m) => (
                       <option key={m.id} value={m.id}>
@@ -173,7 +197,7 @@ export function EditReservationModal({
                   className="btn-modal btn-primary"
                   onClick={() => setIsEditing(true)}
                 >
-                  Modificar Horário / Mesa
+                  Modificar Horário / Mesa / Status
                 </button>
               ) : (
                 <div className="btn-group-split">
@@ -199,7 +223,7 @@ export function EditReservationModal({
           </div>
 
           <div className="modal-footer">
-            <h4>Ações Administrativas</h4>
+            <h4>Ações Administrativas Rápidas</h4>
             <div className="btn-group-row">
               <button
                 type="button"

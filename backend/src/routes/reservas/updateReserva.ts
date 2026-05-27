@@ -22,6 +22,7 @@ const updateReserva = new Elysia()
         data: {
           ...(body.status && { statusPagamento: body.status }),
           ...(body.gatewayTransacaoId && { gatewayTransacaoId: body.gatewayTransacaoId }),
+          ...(body.mesaId && { mesaId: body.mesaId }),
           // RN6: funcionário pode sobrescrever horários
           ...(body.horarioInicio && {
             horarioInicio: new Date(body.horarioInicio),
@@ -38,6 +39,7 @@ const updateReserva = new Elysia()
         status: t.Optional(StatusPagamentoSchema),
         gatewayTransacaoId: t.Optional(t.String()),
         horarioInicio: t.Optional(t.String()),
+        mesaId: t.Optional(t.String()),
       }),
       detail: { tags: ['Reservas'] },
     },

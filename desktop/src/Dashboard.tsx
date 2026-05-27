@@ -225,7 +225,8 @@ export function Dashboard({ onLogout, userName, userRole }: DashboardProps) {
                       </div>
                       <div className="card-info">
                         <strong>Mesa {reserva.mesa.numero}</strong>
-                        <span>{reserva.usuario.nome}</span>
+                        {/* Exibe o nome cadastrado do usuário dinamicamente */}
+                        <span>{reserva.usuario?.nome || 'Usuário não identificado'}</span>
                       </div>
                       <div className="card-status">
                         <span
@@ -234,17 +235,61 @@ export function Dashboard({ onLogout, userName, userRole }: DashboardProps) {
                           title={reserva.statusPagamento}
                         ></span>
                       </div>
-                      {(userRole === 'ADMINISTRADOR' || userRole === 'FUNCIONARIO') && (
-                        <button
-                          className="btn-edit"
-                          onClick={() => {
-                            setSelectedReserva(reserva);
-                            setIsEditModalOpen(true);
-                          }}
-                        >
-                          Editar
-                        </button>
-                      )}
+
+                      {/* Painel de ações dinâmico e flexível */}
+                      <div className="card-actions-wrapper">
+                        {(userRole === 'ADMINISTRADOR' || userRole === 'FUNCIONARIO') && (
+                          <>
+                            {/* Botão de presença rápida se não estiver cancelado */}
+                            {reserva.statusPagamento !== 'CANCELADO' &&
+                              !reserva.presencaConfirmada && (
+                                <button
+                                  className="btn-quick-action btn-quick-success"
+                                  title="Confirmar Presença"
+                                  onClick={async () => {
+                                    setSelectedReserva(reserva);
+                                    const response = await reservasService.confirmarPresenca(
+                                      reserva.id,
+                                    );
+                                    if (response.ok) await carregarDadosDoBanco();
+                                  }}
+                                >
+                                  Confirmar
+                                </button>
+                              )}
+
+                            {/* Botão de cancelamento rápido */}
+                            {reserva.statusPagamento !== 'CANCELADO' && (
+                              <button
+                                className="btn-quick-action btn-quick-danger"
+                                title="Cancelar Reserva"
+                                onClick={async () => {
+                                  if (
+                                    window.confirm(
+                                      `Deseja cancelar a reserva de ${reserva.usuario.nome}?`,
+                                    )
+                                  ) {
+                                    const response = await reservasService.cancelar(reserva.id);
+                                    if (response.ok) await carregarDadosDoBanco();
+                                  }
+                                }}
+                              >
+                                Cancelar
+                              </button>
+                            )}
+
+                            <button
+                              className="btn-edit"
+                              onClick={() => {
+                                setSelectedReserva(reserva);
+                                setIsEditModalOpen(true);
+                              }}
+                            >
+                              Editar
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}

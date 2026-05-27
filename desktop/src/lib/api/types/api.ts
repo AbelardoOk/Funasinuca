@@ -23,13 +23,14 @@ export interface ReservaData {
   statusPagamento: StatusPagamento;
   mesa: { id: string; numero: number };
   usuario: { nome: string };
+  presencaConfirmada: boolean;
 }
 
 export interface CreateReservaPayload {
-  mesa_id: string;
-  horario_inicio: string;
-  horario_fim: string;
-  numero_pessoas: number;
+  mesaId: string;
+  horarioInicio: string;
+  horarioFim: string;
+  numeroPessoas: number;
 }
 
 export interface UpdateReservaPayload {
