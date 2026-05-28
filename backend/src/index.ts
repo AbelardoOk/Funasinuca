@@ -1,6 +1,5 @@
 import cors from '@elysiajs/cors';
 import { Elysia } from 'elysia';
-import { iniciarJobs } from './jobs/reservaJobs';
 import { UnauthorizedError } from './lib/auth';
 import mesasGroup from './routes/mesas';
 import reservaGroup from './routes/reservas';
@@ -42,7 +41,7 @@ const app = new Elysia()
   )
   .listen(PORT);
 
-iniciarJobs();
+// iniciarJobs();
 
 console.log(`🦊 Backend rodando em ${app.server?.hostname}:${app.server?.port}`);
 
