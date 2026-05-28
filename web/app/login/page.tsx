@@ -1,15 +1,29 @@
 "use client"
 
+import { useRouter } from "next/navigation"; 
 import { userService } from "@/lib/api/users";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // 1. IMPORTADO O USEEFFECT
 import { TipoUsuario, ApiResponse } from "@/lib/types/api";
 import { useLocalStorage } from "usehooks-ts";
 
 export default function Login() {
+    const router = useRouter();
     const [data, setData] = useState<ApiResponse<{ token: string; userRole: TipoUsuario }> | null>(null);
     const [msg, setMsg] = useState("");
     const [loading, setLoading] = useState(false);
-    const [token, setToken] = useLocalStorage('token', 'cliente');
+    
+    const [token, setToken] = useLocalStorage('token', ''); 
+    const [isHydrated, setIsHydrated] = useState(false);
+
+    useEffect(() => {
+        setIsHydrated(true);
+    }, []);
+
+    useEffect(() => {
+        if (isHydrated && token) { 
+            router.push("/dashboard"); 
+        }
+    }, [token, isHydrated, router]);
 
     async function realizarLogin(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -37,19 +51,27 @@ export default function Login() {
         try {
             const res = await userService.login(email, senha);
             setData(res);
-            setMsg("Login efetuado com sucesso!");
+            
             if (res && res.data?.token) {
-                setToken(res.data?.token);
+                setToken(res.data.token);
+                setMsg("Login efetuado com sucesso!");
+
+            } else {
+                setMsg("Falha ao obter dados de acesso.");
             }
-        } catch (e) {
+        } catch (err) {
             setMsg("Login ou senha incorretos.");
-            console.error(e);
+            console.error(err);
         } finally {
             setLoading(false);
         }
     }
 
     const isSuccess = msg.includes("sucesso");
+
+    if (!isHydrated) {
+        return null; 
+    }
 
     return (
         <main style={styles.page}>

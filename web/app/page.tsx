@@ -1,368 +1,239 @@
-'use client' //acessar funções exclusivas
+import Link from "next/link";
 
-import Image from 'next/image';
+// ── Dados do site ──────────────────────────────────────────────────────────
+const HORARIOS_FUNC = [
+    { dia: "Seg – Sex", hora: "10h às 23h" },
+    { dia: "Sábado",    hora: "10h às 00h" },
+    { dia: "Domingo",   hora: "12h às 22h" },
+];
 
+const MESAS_INFO = [
+    { tipo: "Standard", lugares: 4, descricao: "Mesas clássicas para partidas rápidas", destaque: false },
+    { tipo: "Semi-Pro", lugares: 6, descricao: "Ótima para grupos e torneios amistosos", destaque: true },
+    { tipo: "VIP",      lugares: 8, descricao: "Espaço premium com mesa profissional", destaque: false },
+];
 
-import { useState, useEffect } from 'react'
-//usesState -> hook para guardar estados(dados que mudam)
-//udeEffect -> hook para rodar códigos após renderizar
+const DEPOIMENTOS = [
+    { nome: "Rafael M.", texto: "Melhor lugar da cidade para jogar. Ambiente incrível!" },
+    { nome: "Juliana S.", texto: "Reservei online em 1 minuto. Processo super fácil." },
+    { nome: "Pedro A.", texto: "Estrutura impecável, voltamos toda semana com os amigos." },
+];
 
+// ── Componente ─────────────────────────────────────────────────────────────
 export default function Home() {
-  const [mesa, setMesa] = useState<string | null>(null)
-  //criou a váriavel de estado = mesa
-  //Criou função que altera o estado da mesa = setMesa
-  //Definir a tipagem= A mesa começa como null, mas aceita somente dados do tipo String
+    return (
+        <main style={s.page}>
 
-  //Formulário
-  const [mostrarForm, setMostrarForm] = useState<boolean>(false)
+            {/* ── Navbar ── */}
+            <nav style={s.nav}>
+                <div style={s.navBrand}>
+                    <div style={s.navLogo}>🎱</div>
+                    <span style={s.navTitle}>Funasinuca</span>
+                </div>
+                <Link href="/login" style={s.navCta}>Entrar</Link>
+            </nav>
 
-  //nome do cliente
-  const [nome, setNome] = useState<string>('')
+            {/* ── Hero ── */}
+            <section style={s.hero}>
+                <div style={s.heroContent}>
+                    <div style={s.heroBadge}>🎱 Aberto agora</div>
+                    <h1 style={s.heroTitle}>
+                        O sinuca<br />
+                        <span style={s.heroDestaque}>que você merece.</span>
+                    </h1>
+                    <p style={s.heroDesc}>
+                        Reserve sua mesa online em segundos. Ambiente descontraído, mesas profissionais e diversão garantida para você e seus amigos.
+                    </p>
+                    <div style={s.heroActions}>
+                        <Link href="/login" style={s.heroBtnPrimario}>Reservar mesa</Link>
+                        <a href="#sobre" style={s.heroBtnSecundario}>Saiba mais ↓</a>
+                    </div>
+                </div>
+                {/* Detalhe decorativo */}
+                <div style={s.heroOrb} aria-hidden />
+            </section>
 
-  //confirmar reserva
-  const [confirmado, setConfirmado] = useState<boolean>(false)
+            {/* ── Sobre ── */}
+            <section id="sobre" style={s.section}>
+                <div style={s.sectionInner}>
+                    <div style={s.tag}>Quem somos</div>
+                    <h2 style={s.sectionTitle}>Um espaço feito para quem ama o jogo</h2>
+                    <p style={s.sectionDesc}>
+                        O Funasinuca é o ponto de encontro dos apaixonados por sinuca em Campo Grande.
+                        Com mesas regulamentadas, atmosfera descontraída e sistema de reservas online,
+                        garantimos que sua partida comece sem espera e termine com vontade de mais.
+                    </p>
+                    <div style={s.statsRow}>
+                        {[
+                            { n: "8", label: "Mesas disponíveis" },
+                            { n: "5+", label: "Anos de história" },
+                            { n: "4k+", label: "Reservas realizadas" },
+                        ].map(st => (
+                            <div key={st.label} style={s.statCard}>
+                                <span style={s.statNum}>{st.n}</span>
+                                <span style={s.statLabel}>{st.label}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
+            {/* ── Mesas ── */}
+            <section style={{ ...s.section, background: "#F9F9F7" }}>
+                <div style={s.sectionInner}>
+                    <div style={s.tag}>Nossas mesas</div>
+                    <h2 style={s.sectionTitle}>Escolha a mesa ideal para você</h2>
+                    <div style={s.mesasGrid}>
+                        {MESAS_INFO.map(m => (
+                            <div key={m.tipo} style={{ ...s.mesaCard, ...(m.destaque ? s.mesaCardDestaque : {}) }}>
+                                {m.destaque && <div style={s.mesaPopular}>Popular</div>}
+                                <div style={s.mesaIcone}>🪑</div>
+                                <h3 style={s.mesaTipo}>{m.tipo}</h3>
+                                <p style={s.mesaLugares}>{m.lugares} lugares</p>
+                                <p style={s.mesaDesc}>{m.descricao}</p>
+                                <Link href="/login" style={{ ...s.mesaBtn, ...(m.destaque ? s.mesaBtnDestaque : {}) }}>
+                                    Reservar
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
-  //type para definição de objetos
-  type MesaInfo = {
-    id: string
-    numero: number
-    status: 'disponivel' | 'reservada' | 'indisponivel'
-    espera: number //fila
-  }
+            {/* ── Horários ── */}
+            <section style={s.section}>
+                <div style={s.sectionInner}>
+                    <div style={s.tag}>Funcionamento</div>
+                    <h2 style={s.sectionTitle}>Quando você pode jogar</h2>
+                    <div style={s.horariosGrid}>
+                        {HORARIOS_FUNC.map(h => (
+                            <div key={h.dia} style={s.horarioCard}>
+                                <span style={s.horarioDia}>{h.dia}</span>
+                                <span style={s.horarioHora}>{h.hora}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div style={s.enderecoBox}>
+                        <span style={s.enderecoIcone}>📍</span>
+                        <div>
+                            <div style={s.enderecoLabel}>Endereço</div>
+                            <div style={s.enderecoValor}>Rua Exemplo, 123 — Campo Grande, MS</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-  //dados da mesa
-  const mesas: MesaInfo[] = [
-    { id: 'm1', numero: 1, status: 'disponivel', espera: 0 },
-    { id: 'm2', numero: 2, status: 'reservada', espera: 3 },
-    { id: 'm3', numero: 3, status: 'disponivel', espera: 0 },
-    { id: 'm4', numero: 4, status: 'indisponivel', espera: 0 },
-  ]
+            {/* ── Depoimentos ── */}
+            <section style={{ ...s.section, background: "#F9F9F7" }}>
+                <div style={s.sectionInner}>
+                    <div style={s.tag}>Quem frequenta</div>
+                    <h2 style={s.sectionTitle}>O que dizem nossos clientes</h2>
+                    <div style={s.depGrid}>
+                        {DEPOIMENTOS.map(d => (
+                            <div key={d.nome} style={s.depCard}>
+                                <p style={s.depTexto}>"{d.texto}"</p>
+                                <div style={s.depNome}>{d.nome}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
-  function corStatus(status: MesaInfo['status']): string {
-    if (status === 'disponivel') return '#22c55e'
-    if (status === 'reservada') return '#f59e0b'
-    if (status === 'indisponivel') return '#ef4444'
-    return '#9ca3af'
-  }
+            {/* ── CTA Final ── */}
+            <section style={s.ctaSection}>
+                <div style={s.ctaInner}>
+                    <h2 style={s.ctaTitle}>Pronto para jogar?</h2>
+                    <p style={s.ctaDesc}>Crie sua conta e reserve sua mesa em menos de 1 minuto.</p>
+                    <Link href="/login" style={s.ctaBtn}>Reservar agora</Link>
+                </div>
+            </section>
 
-  //conversar com BD
-  function labelStatus(status: MesaInfo['status']): string {
-    if (status === 'disponivel') return 'Disponível'
-    if (status === 'reservada') return 'Reservada'
-    if (status === 'indisponivel') return 'Indisponível'
-    return status
-  }
-
-  //confirmar reserva
-  function confirmarReserva() {
-    if (!nome.trim()) return //Se o nome estiver vazio não retorna nada - trim() -> Limpar espaços em branco
-    setConfirmado(true)
-    setMostrarForm(true)
-  }
-
-  //o "HTML" tá aqui ó
-  //<> -> Fragment. Agrupa sem criar outra div
-
-  return (
-    <>
-      <nav style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0,
-        zIndex: 50,
-        padding: '1rem 2rem',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        background: 'rgba(10,10,10,0.85)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid #1f2937',
-      }}> <span style={{ fontWeight: 700, fontSize: '1.25rem', color: '#c52222' }}>
-          🎱 Funasinuca
-        </span>
-        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: '#9ca3af' }}>
-          <a href="#como-funciona" style={{ transition: 'color 0.2s' }}>Como funciona</a>
-          <a href="#mesas" style={{ transition: 'color 0.2s' }}>mesas</a>
-          <a href="#reservar" style={{
-            background: '#ab1709',
-            color: '#0a0a0a',
-            padding: '0.4rem 1rem',
-            borderRadius: '999px',
-            fontWeight: 600,
-          }}>Reservar Agora</a>
-        </div>
-      </nav>
-
-      {/*Principal*/}
-      <section style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        padding: '6rem 1.5rem 3rem',
-      }}>
-
-        <span style={{
-          background: '#441701',
-          color: '#fa3232',
-          fontSize: '0.75rem',
-          fontWeight: 600,
-          letterSpacing: '0.1em',
-          padding: '0.35rem 1rem',
-          borderRadius: '999px',
-          marginBottom: '1.5rem',
-          textTransform: 'uppercase',
-        }}>
-          Batata+ Bar · Campo Grande, MS
-        </span>
-
-        <h1 style={{
-          fontSize: 'clamp(2.5rem, 6vw, 5rem)', //clamp -> tamanho responsivo
-          fontWeight: 800,
-          lineHeight: 1.1,
-          maxWidth: '900px',
-          marginBottom: '1.5rem',
-        }}>
-          Reserve sua mesa de{' '}
-          <span style={{ color: '#e73e3e' }}>sinuca</span>
-          {' '}sem fila
-        </h1>
-
-        {/*Subtitulo*/}
-        <p style={{
-          color: '#9ca3af',
-          fontSize: '1.125rem',
-          maxWidth: '560px',
-          marginBottom: '2.5rem',
-        }}>
-          Consulte disponibilidade em tempo real, reserve por 30 minutos.
-        </p>
-
-        <a href="#mesas" style={{
-          display: 'inline-block',
-          background: '#e93030',
-          color: '#0a0a0a',
-          fontWeight: 700,
-          fontSize: '1rem',
-          padding: '0.9rem 2.5rem',
-          borderRadius: '999px',
-        }}>
-          Ver mesas disponíveis →
-        </a>
-      </section>
-
-      {/*Funcionalidades*/}
-      <section id='Como-funciona' style={{
-        padding: '5rem 1.5rem',
-        maxWidth: '960px',
-        margin: '0 auto',
-      }}>
-        <h2 style={{ textAlign: 'center', fontSize: '2rem', fontWeight: 700, marginBottom: '3rem' }}> Como funiona </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '1.5rem',
-        }}>
-          {[
-            { num: '01', titulo: 'Escolha a mesa', desc: 'Veja quais mesas estão livres' },
-            { num: '02', titulo: 'Reserve por 30 min', desc: 'Garanta seu horário com antecedência' },
-            { num: '03', titulo: 'Pague online', desc: 'Pagamento integrado' },
-          ].map((passo) => (
-            // "key" é obrigatório em listas para o React rastrear os itens
-            <div key={passo.num} style={{
-              background: '#111827',
-              border: '1px solid #1f2937',
-              borderRadius: '1rem',
-              padding: '1.75rem',
-            }}>
-              <span style={{ color: '#c52222', fontWeight: 800, fontSize: '1.5rem' }}>
-                {passo.num}
-              </span>
-              <h3 style={{ fontWeight: 600, margin: '0.75rem 0 0.5rem' }}>{passo.titulo}</h3>
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>{passo.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/*MESAS*/}
-      <section id='mesas' style={{
-        padding: '5rem 1.5rem',
-        maxWidth: '960px',
-        margin: '0 auto',
-      }}>
-        <h2 style={{ textAlign: 'center', fontSize: '2rem', fontWeight: 700, marginBottom: '0.75rem' }}>Mesas agora</h2>
-        <p style={{ textAlign: 'center', color: '#9ca3af', marginBottom: '3rem' }}>Clique em uma mesa disponível para reservar</p>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1.25rem',
-        }}>
-          {mesas.map((m) => (
-            <div
-              key={m.id}
-              onClick={() => {
-                //só em mesas disponíveis
-                if (m.status === 'disponivel') {
-                  setMesa(m.id)
-                  setMostrarForm(true)
-                  setConfirmado(false)
-                }
-              }}
-              style={{
-                background: '#111827',
-                border: `2px solid ${mesa === m.id ? '#22c55e' : '#1f2937'}`,
-                borderRadius: '1rem',
-                padding: '1.5rem',
-                cursor: m.status === 'disponivel' ? 'pointer' : 'not-allowed',
-                opacity: m.status === 'indisponivel' ? 0.5 : 1,
-                transition: 'border-color 0.2s, transform 0.15s',
-              }}>
-              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎱</div>
-              <h3 style={{ fontWeight: 700, marginBottom: '0.5rem' }}>
-                Mesa {m.numero}
-              </h3>
-
-              {/* Bolinha colorida + texto de status */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{
-                  width: '8px', height: '8px',
-                  borderRadius: '50%',
-                  background: corStatus(m.status),
-                  display: 'inline-block',
-                }} />
-                <span style={{ fontSize: '0.85rem', color: '#9ca3af' }}>
-                  {labelStatus(m.status)}
-                </span>
-              </div>
-
-              {/*Fila de espera*/}
-              {m.espera > 0 && (
-                <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#6b7280' }}>
-                  {m.espera} na fila
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/*Form Reservas*/}
-
-      {mostrarForm && (
-        <section id='reservar' style={{
-          padding: '4rem 1.5rem',
-          maxWidth: '480px',
-          margin: '0 auto',
-        }}>
-          <div style={{
-            background: '#111827',
-            border: '1px solid #1f2937',
-            borderRadius: '1.25rem',
-            padding: '2rem',
-          }}>
-            <h2 style={{ fontWeight: 700, marginBottom: '1.5rem' }}>
-              Reservar Mesa {mesas.find(m => m.id === mesa)?.numero} {/*mesas.find => retorna mesas pelo id. O "?" evita o erro se nada for encontrado*/}
-            </h2>
-
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', color: '#9ca3af' }}>
-              Seu nome
-            </label>
-            <input
-              type="text"
-              value={nome}
-              // "e" = evento do input | e.target.value = texto digitado
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Ex: João Silva"
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '0.75rem',
-                border: '1px solid #374151',
-                background: '#0a0a0a',
-                color: '#fff',
-                fontSize: '1rem',
-                marginBottom: '1.25rem',
-                outline: 'none',
-              }} />
-
-            <div style={{
-              background: '#2e0605',
-              borderRadius: '0.75rem',
-              padding: '1rem',
-              marginBottom: '1.5rem',
-              fontSize: '0.875rem',
-              color: '#ef8886',
-            }}>
-              ⏱ Sessão de <strong>30 minutos</strong> · Pagamento online
-            </div>
-
-            {/* Botão de confirmar */}
-            <button
-              onClick={confirmarReserva}
-              style={{
-                width: '100%',
-                padding: '0.9rem',
-                background: '#c53522',
-                color: '#0a0a0a',
-                fontWeight: 700,
-                fontSize: '1rem',
-                border: 'none',
-                borderRadius: '999px',
-                cursor: 'pointer',
-              }}
-            >
-              Confirmar reserva
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/*Confirmação*/}
-      {confirmado && (
-        <section style={{
-          padding: '3rem 1.5rem',
-          maxWidth: '480px',
-          margin: '0 auto',
-          textAlign: 'center',
-        }}>
-          <div style={{
-            background: '#052e16',
-            border: '1px solid #166534',
-            borderRadius: '1.25rem',
-            padding: '2.5rem',
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-            <h2 style={{ fontWeight: 700, color: '#86efac', marginBottom: '0.5rem' }}>
-              Reserva confirmada!
-            </h2>
-            <p style={{ color: '#6ee7b7' }}>
-              <strong>{nome}</strong>! Sua mesa está garantida por 30 minutos.
-            </p>
-          </div>
-        </section>
-      )}
-
-
-      {/*Rodapé*/}
-      <footer style={{
-        textAlign: 'center',
-        padding: '3rem 1rem',
-        borderTop: '1px solid #1f2937',
-        color: '#6b7280',
-        fontSize: '0.875rem',
-        marginTop: '4rem',
-      }}>
-        <p style={{ marginBottom: '0.5rem', fontWeight: 600, color: '#9ca3af' }}>
-          🎱 Funasinuca
-        </p>
-        <p>Desenvolvido para o Batata+ Bar · Campo Grande, MS</p>
-        <p style={{ marginTop: '0.5rem', color: '#374151' }}>© 2025 Funasinuca</p>
-      </footer>
-
-    </>
-  )
+            {/* ── Footer ── */}
+            <footer style={s.footer}>
+                <div style={s.footerBrand}>
+                    <div style={s.navLogo}>🎱</div>
+                    <span style={s.footerNome}>Funasinuca</span>
+                </div>
+                <p style={s.footerCopy}>© {new Date().getFullYear()} Funasinuca. Todos os direitos reservados.</p>
+            </footer>
+        </main>
+    );
 }
+
+// ── Styles ─────────────────────────────────────────────────────────────────
+const s: Record<string, React.CSSProperties> = {
+    page: { background: "#FFFFFF", fontFamily: "'Geist','DM Sans','Inter',sans-serif", color: "#111" },
+
+    // Nav
+    nav: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2rem", height: "62px", borderBottom: "1px solid #EBEBEB", position: "sticky", top: 0, background: "#fff", zIndex: 20 },
+    navBrand: { display: "flex", alignItems: "center", gap: "10px" },
+    navLogo: { width: "36px", height: "36px", background: "#F5C518", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" },
+    navTitle: { fontSize: "17px", fontWeight: 700, color: "#111", letterSpacing: "-0.3px" },
+    navCta: { background: "#111", color: "#fff", padding: "8px 20px", borderRadius: "10px", fontSize: "14px", fontWeight: 600, textDecoration: "none", transition: "background .15s" },
+
+    // Hero
+    hero: { minHeight: "88vh", display: "flex", alignItems: "center", padding: "4rem 2rem", maxWidth: "900px", margin: "0 auto", position: "relative", overflow: "hidden" },
+    heroContent: { position: "relative", zIndex: 2, maxWidth: "560px" },
+    heroBadge: { display: "inline-flex", alignItems: "center", gap: "6px", background: "#FFFBEA", border: "1px solid #F5C518", borderRadius: "100px", padding: "5px 14px", fontSize: "13px", fontWeight: 500, color: "#7B5E00", marginBottom: "1.5rem" },
+    heroTitle: { fontSize: "clamp(42px, 6vw, 72px)", fontWeight: 800, lineHeight: 1.08, letterSpacing: "-2px", margin: "0 0 1.25rem", color: "#111" },
+    heroDestaque: { color: "#F5C518" },
+    heroDesc: { fontSize: "17px", color: "#555", lineHeight: 1.6, maxWidth: "460px", margin: "0 0 2rem" },
+    heroActions: { display: "flex", gap: "12px", flexWrap: "wrap" },
+    heroBtnPrimario: { background: "#F5C518", color: "#111", padding: "14px 28px", borderRadius: "12px", fontSize: "16px", fontWeight: 700, textDecoration: "none", letterSpacing: "-0.2px" },
+    heroBtnSecundario: { background: "none", color: "#888", padding: "14px 20px", borderRadius: "12px", fontSize: "15px", fontWeight: 500, textDecoration: "none" },
+    heroOrb: { position: "absolute", right: "-80px", top: "50%", transform: "translateY(-50%)", width: "420px", height: "420px", background: "radial-gradient(circle, rgba(245,197,24,0.18) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none" },
+
+    // Sections
+    section: { padding: "5rem 2rem", background: "#fff" },
+    sectionInner: { maxWidth: "860px", margin: "0 auto" },
+    tag: { display: "inline-block", background: "#F5C518", color: "#111", fontWeight: 600, fontSize: "12px", letterSpacing: "0.5px", textTransform: "uppercase", padding: "4px 12px", borderRadius: "6px", marginBottom: "1rem" },
+    sectionTitle: { fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 800, letterSpacing: "-0.8px", margin: "0 0 1rem", color: "#111" },
+    sectionDesc: { fontSize: "16px", color: "#666", lineHeight: 1.7, maxWidth: "560px" },
+
+    // Stats
+    statsRow: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginTop: "2.5rem", maxWidth: "500px" },
+    statCard: { display: "flex", flexDirection: "column", gap: "4px" },
+    statNum: { fontSize: "36px", fontWeight: 800, color: "#111", letterSpacing: "-1px" },
+    statLabel: { fontSize: "13px", color: "#888" },
+
+    // Mesas
+    mesasGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: "1rem", marginTop: "2rem" },
+    mesaCard: { background: "#fff", border: "1.5px solid #EBEBEB", borderRadius: "16px", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "8px", position: "relative" },
+    mesaCardDestaque: { border: "2px solid #F5C518", boxShadow: "0 4px 30px rgba(245,197,24,.15)" },
+    mesaPopular: { position: "absolute", top: "-1px", right: "16px", background: "#F5C518", color: "#111", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "0 0 8px 8px", letterSpacing: "0.3px" },
+    mesaIcone: { fontSize: "28px", marginBottom: "4px" },
+    mesaTipo: { fontSize: "17px", fontWeight: 700, color: "#111", margin: 0 },
+    mesaLugares: { fontSize: "13px", color: "#888", margin: 0 },
+    mesaDesc: { fontSize: "14px", color: "#555", lineHeight: 1.5, margin: "0 0 auto" },
+    mesaBtn: { marginTop: "1rem", padding: "10px", background: "#F9F9F7", border: "1.5px solid #E5E5E5", borderRadius: "10px", fontSize: "14px", fontWeight: 600, color: "#111", textDecoration: "none", textAlign: "center" },
+    mesaBtnDestaque: { background: "#F5C518", border: "none" },
+
+    // Horários
+    horariosGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem", marginTop: "2rem" },
+    horarioCard: { background: "#F9F9F7", border: "1px solid #EBEBEB", borderRadius: "12px", padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: "4px" },
+    horarioDia: { fontSize: "13px", color: "#888", fontWeight: 500 },
+    horarioHora: { fontSize: "18px", fontWeight: 700, color: "#111", letterSpacing: "-0.3px" },
+    enderecoBox: { display: "flex", alignItems: "center", gap: "12px", background: "#F9F9F7", border: "1px solid #EBEBEB", borderRadius: "12px", padding: "1.25rem 1.5rem", marginTop: "1rem", maxWidth: "400px" },
+    enderecoIcone: { fontSize: "22px" },
+    enderecoLabel: { fontSize: "12px", color: "#888", marginBottom: "2px" },
+    enderecoValor: { fontSize: "14px", fontWeight: 500, color: "#111" },
+
+    // Depoimentos
+    depGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1rem", marginTop: "2rem" },
+    depCard: { background: "#fff", border: "1px solid #EBEBEB", borderRadius: "14px", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" },
+    depTexto: { fontSize: "15px", color: "#444", lineHeight: 1.6, margin: 0, fontStyle: "italic" },
+    depNome: { fontSize: "13px", fontWeight: 600, color: "#111" },
+
+    // CTA
+    ctaSection: { background: "#111", padding: "5rem 2rem" },
+    ctaInner: { maxWidth: "860px", margin: "0 auto", textAlign: "center" },
+    ctaTitle: { fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, color: "#fff", letterSpacing: "-1px", margin: "0 0 1rem" },
+    ctaDesc: { fontSize: "16px", color: "#888", margin: "0 0 2rem" },
+    ctaBtn: { display: "inline-block", background: "#F5C518", color: "#111", padding: "15px 36px", borderRadius: "12px", fontSize: "16px", fontWeight: 700, textDecoration: "none", letterSpacing: "-0.2px" },
+
+    // Footer
+    footer: { padding: "1.75rem 2rem", borderTop: "1px solid #EBEBEB", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" },
+    footerBrand: { display: "flex", alignItems: "center", gap: "10px" },
+    footerNome: { fontSize: "15px", fontWeight: 700, color: "#111" },
+    footerCopy: { fontSize: "13px", color: "#999", margin: 0 },
+};
