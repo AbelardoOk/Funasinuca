@@ -8,9 +8,7 @@ const getMesas = new Elysia()
   .use(prisma)
   .get(
     '/',
-    async ({ requireFuncionario, prisma, query }) => {
-      await requireFuncionario();
-
+    async ({ prisma, query }) => {
       const mesas = await prisma.mesa.findMany({
         where: {
           ...(query.status && { status: query.status }),

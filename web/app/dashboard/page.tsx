@@ -1,34 +1,23 @@
 'use client';
 
+import { mesaService } from '@/lib/api/mesas';
+import { reservaService } from '@/lib/api/reservas';
 import { userService } from '@/lib/api/users';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useLocalStorage } from 'usehooks-ts';
 
 type Mesa = {
-  id: number;
+  id: string;
   numero: number;
-  lugares: number;
   status: 'disponivel' | 'reservada' | 'ocupada';
 };
 
 type Reserva = {
-  mesaId: number;
+  mesaId: string;
   data: string;
   horario: string;
-  nome: string;
 };
-
-const MESAS_MOCK: Mesa[] = [
-  { id: 1, numero: 1, lugares: 4, status: 'disponivel' },
-  { id: 2, numero: 2, lugares: 4, status: 'reservada' },
-  { id: 3, numero: 3, lugares: 6, status: 'disponivel' },
-  { id: 4, numero: 4, lugares: 4, status: 'ocupada' },
-  { id: 5, numero: 5, lugares: 6, status: 'disponivel' },
-  { id: 6, numero: 6, lugares: 4, status: 'disponivel' },
-  { id: 7, numero: 7, lugares: 8, status: 'reservada' },
-  { id: 8, numero: 8, lugares: 4, status: 'disponivel' },
-];
 
 const HORARIOS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '19:00', '20:00', '21:00'];
 
@@ -41,14 +30,13 @@ export default function Dashboard() {
   const router = useRouter();
 
   const [isHydrated, setIsHydrated] = useState(false);
-  const [mesas] = useState<Mesa[]>(MESAS_MOCK);
+  const [mesas, setMesas] = useState<Mesa[]>([]);
   const [mesaSelecionada, setMesaSelecionada] = useState<Mesa | null>(null);
   const [etapa, setEtapa] = useState<'lista' | 'formulario'>('lista');
   const [reserva, setReserva] = useState<Reserva>({
-    mesaId: 0,
+    mesaId: '',
     data: hojeISO(),
     horario: '',
-    nome: '',
   });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
@@ -73,6 +61,24 @@ export default function Dashboard() {
         if (!req.ok) {
           setToken('');
           router.push('/login');
+          return;
+        }
+
+        const resMesas = await mesaService.getAll(token);
+        console.log(resMesas.data);
+        if (resMesas.data) {
+          const statusMap: Record<string, Mesa['status']> = {
+            DISPONIVEL: 'disponivel',
+            RESERVADA: 'reservada',
+            INDISPONIVEL: 'ocupada',
+          };
+          setMesas(
+            resMesas.data.map((m) => ({
+              id: m.id,
+              numero: m.numero,
+              status: statusMap[m.status] ?? 'ocupada',
+            })),
+          );
         }
       } catch (error) {
         console.error('Erro ao validar acesso:', error);
@@ -103,19 +109,35 @@ export default function Dashboard() {
       setMsg('Selecione um horário.');
       return;
     }
-    if (!reserva.nome.trim()) {
-      setMsg('Informe seu nome.');
-      return;
-    }
 
     setLoading(true);
     setMsg('');
 
     try {
-      // TODO: substituir pelo seu reservaService.criar(reserva, token)
-      await new Promise((res) => setTimeout(res, 1200));
+      const horarioInicio = `${reserva.data}T${reserva.horario}:00.000Z`;
 
-      // ── Redireciona para pagamento passando os dados da reserva ──
+      const resReserva = await reservaService.create(
+        {
+          mesaId: reserva.mesaId,
+          horarioInicio,
+        },
+        token,
+      );
+
+      if (!resReserva.data) {
+        setMsg('Erro ao criar reserva. Tente novamente.');
+        setLoading(false);
+        return;
+      }
+
+      const resPagamento = await reservaService.criarPagamento(String(resReserva.data.id), token);
+
+      if (resPagamento.data?.sandboxInitPoint) {
+        window.location.href = resPagamento.data.sandboxInitPoint;
+        return;
+      }
+
+      // Fallback: redireciona para página de pagamento interna
       const dataFormatada = new Date(reserva.data + 'T12:00:00').toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: 'long',
@@ -123,11 +145,10 @@ export default function Dashboard() {
       });
 
       const params = new URLSearchParams({
+        mesaId: String(reserva.mesaId),
         mesa: String(mesaSelecionada!.numero),
-        lugares: String(mesaSelecionada!.lugares),
         data: dataFormatada,
         horario: reserva.horario,
-        nome: reserva.nome,
       });
 
       router.push(`/pagamento?${params.toString()}`);
@@ -139,7 +160,7 @@ export default function Dashboard() {
 
   function voltarParaLista() {
     setMesaSelecionada(null);
-    setReserva({ mesaId: 0, data: hojeISO(), horario: '', nome: '' });
+    setReserva({ mesaId: '', data: hojeISO(), horario: '' });
     setEtapa('lista');
     setMsg('');
   }
@@ -222,10 +243,6 @@ export default function Dashboard() {
                       {statusLabel[mesa.status]}
                     </span>
                   </div>
-                  <div style={s.mesaIconeWrap}>
-                    <span style={s.mesaIcone}>🪑</span>
-                    <span style={s.mesaLugares}>{mesa.lugares} lugares</span>
-                  </div>
                 </button>
               ))}
             </div>
@@ -242,31 +259,9 @@ export default function Dashboard() {
             <div style={s.formCard}>
               <div style={s.formHeader}>
                 <div style={s.formBadgeGrande}>Mesa {mesaSelecionada.numero}</div>
-                <p style={s.formSubtitle}>{mesaSelecionada.lugares} lugares · Disponível</p>
               </div>
 
               <form onSubmit={confirmarReserva} style={s.form}>
-                <div style={s.fieldGroup}>
-                  <label style={s.label}>Seu nome</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: João Silva"
-                    value={reserva.nome}
-                    onChange={(e) => setReserva((prev) => ({ ...prev, nome: e.target.value }))}
-                    style={s.input}
-                    onFocus={(e) => {
-                      (e.target as HTMLInputElement).style.borderColor = '#F5C518';
-                      (e.target as HTMLInputElement).style.boxShadow =
-                        '0 0 0 3px rgba(245,197,24,0.18)';
-                    }}
-                    onBlur={(e) => {
-                      (e.target as HTMLInputElement).style.borderColor = '#E5E5E5';
-                      (e.target as HTMLInputElement).style.boxShadow = 'none';
-                    }}
-                  />
-                </div>
-
                 <div style={s.fieldGroup}>
                   <label style={s.label}>Data</label>
                   <input
