@@ -88,5 +88,6 @@ export interface UpdateMesaPayload {
 export interface UpdateUsuarioPayload {
   nome?: string;
   email?: string;
-  role?: TipoUsuario;
+  cpf?: string;
+  tipo?: TipoUsuario;
 }

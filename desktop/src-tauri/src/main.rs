@@ -52,7 +52,8 @@ pub struct UpdateMesaPayload {
 pub struct UpdateUsuarioPayload {
     pub nome: Option<String>,
     pub email: Option<String>,
-    pub role: Option<String>,
+    pub cpf: Option<String>,
+    pub tipo: Option<String>,
 }
 
 const BASE_URL: &str = "http://localhost:3000/api";

@@ -15,6 +15,7 @@ export function UsersManagement({ userRole }: UsersManagementProps) {
   const [idLinhaEmEdicao, setIdLinhaEmEdicao] = useState<string | null>(null);
   const [editNome, setEditNome] = useState('');
   const [editEmail, setEditEmail] = useState('');
+  const [editCpf, setEditCpf] = useState('');
   const [editRole, setEditRole] = useState<TipoUsuario>('CLIENTE');
 
   // 🚀 Estados para seleção em massa
@@ -40,6 +41,7 @@ export function UsersManagement({ userRole }: UsersManagementProps) {
     setIdLinhaEmEdicao(user.id);
     setEditNome(user.nome);
     setEditEmail(user.email);
+    setEditCpf(user.cpf || '');
     setEditRole(user.tipo || 'CLIENTE'); //
   };
 
@@ -53,11 +55,13 @@ export function UsersManagement({ userRole }: UsersManagementProps) {
       const payload: UpdateUsuarioPayload = {
         nome: editNome,
         email: editEmail,
-        role: editRole,
+        cpf: editCpf,
+        tipo: editRole,
       };
 
       const response = await userService.update(userId, payload);
 
+      console.log("RESPOSTA DO BACKEND:", response);
       if (response.ok) {
         alert('Usuário atualizado com sucesso!');
         setIdLinhaEmEdicao(null);
@@ -113,7 +117,7 @@ export function UsersManagement({ userRole }: UsersManagementProps) {
     try {
       // Como o seu backend atualiza via payload, simulamos uma desativação limpando privilégios estritos
       const promessas = usuariosSelecionados.map((id) =>
-        userService.update(id, { role: 'CLIENTE' }),
+        userService.update(id, { tipo: 'CLIENTE' }),
       );
       await Promise.all(promessas);
 
@@ -352,7 +356,22 @@ export function UsersManagement({ userRole }: UsersManagementProps) {
                     {/* CPF */}
                     {isAdmin && (
                       <td className="text-monospace" style={{ letterSpacing: '0.5px' }}>
-                        {formatarCPF(user.cpf)}
+                        {idLinhaEmEdicao === user.id ? (
+                          <input
+                            type="text"
+                            value={editCpf}
+                            onChange={(e) => setEditCpf(e.target.value)}
+                            maxLength={14}
+                            style={{
+                              padding: '4px 8px',
+                              width: '100%',
+                              borderRadius: '4px',
+                              border: '1px solid #cbd5e1',
+                            }}
+                          />
+                        ) : (
+                          formatarCPF(user.cpf)
+                        )}
                       </td>
                     )}
 

@@ -46,6 +46,7 @@ const updateUsuario = new Elysia()
       body: t.Object({
         nome: t.Optional(t.String()),
         email: t.Optional(t.String()),
+        cpf: t.Optional(t.String()), // <-- CPF adicionado no validador do Elysia!
         tipo: t.Optional(
           t.Union([t.Literal('CLIENTE'), t.Literal('FUNCIONARIO'), t.Literal('ADMINISTRADOR')]),
         ),

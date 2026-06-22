@@ -50,7 +50,7 @@ const auth = new Elysia({ name: 'auth' })
 
       requireAdmin: async () => {
         const user = await getAuthenticatedUser();
-        if (user.tipo !== TipoUsuario.ADMINISTRADOR) {
+        if (user.tipo !== "ADMINISTRADOR") {
           throw new UnauthorizedError('Acesso restrito a administradores');
         }
         return user;
