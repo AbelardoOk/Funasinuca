@@ -6,14 +6,48 @@ O **Funasinuca** é uma solução digital desenvolvida para otimizar a gestão e
 
 ---
 
+## 📑 Sumário
+
+- [📌 Sobre o Projeto](#-sobre-o-projeto)
+- [🚀 Atores e Permissões](#-atores-e-permissões)
+- [🛠️ Tecnologias Utilizadas](#️-tecnologias-utilizadas)
+- [⚙️ Como Iniciar](#️-como-iniciar)
+- [📡 Rotas da API](#-rotas-da-api)
+- [📋 Regras de Negócio](#-regras-de-negócio)
+- [🗄️ Modelo de Dados](#️-modelo-de-dados)
+- [🔒 Segurança](#-segurança)
+- [🧪 Testes](#-testes)
+- [🔮 Roadmap](#-roadmap)
+- [👥 Equipe](#-equipe)
+
+---
+
 ## 📌 Sobre o Projeto
 
 O sistema foi idealizado para resolver problemas comuns em bares locais de Campo Grande, como a desorganização de filas e a perda silenciosa de faturamento por falta de controle operacional.
+
+**Objetivos de Negócio:**
+
+- Automatizar 100% o processo de reserva, eliminando métodos analógicos como cadernos e planilhas.
+- Reduzir o tempo de ociosidade das mesas entre partidas.
+- Evitar prejuízos causados por clientes que ocupam as mesas além do tempo pago.
+- Aumentar o faturamento consolidado do setor de entretenimento do estabelecimento.
+- Prevenir conflitos em filas por meio de um painel de monitoramento transparente.
 
 ### Principais Funcionalidades
 
 - **Web/Mobile (Cliente):** Cadastro, consulta de disponibilidade em tempo real, reserva de mesas com duração fixa de 30 minutos e pagamento online.
 - **Desktop (Administrativo):** Painel de gestão local para funcionários, controle de status das mesas (`disponível`, `reservada`, `indisponível`, `atrasada`) e relatórios de desempenho para administradores.
+
+---
+
+## 🚀 Atores e Permissões
+
+| Ator              | Plataforma | Permissões                                                                            |
+| ----------------- | ---------- | ------------------------------------------------------------------------------------- |
+| **Cliente**       | Web/Mobile | Cadastro, consulta de disponibilidade, pagamento e cancelamento de reservas           |
+| **Funcionário**   | Desktop    | Check-in, liberação de mesas, encerramento de partidas e intervenções de balcão       |
+| **Administrador** | Desktop    | Controle total: cadastro de mesas, configurações, relatórios e gestão de funcionários |
 
 ---
 
@@ -30,7 +64,7 @@ O sistema foi idealizado para resolver problemas comuns em bares locais de Campo
 
 ---
 
-## 🚀 Como Iniciar
+## ⚙️ Como Iniciar
 
 ### Pré-requisitos
 
@@ -50,27 +84,28 @@ cd funasinuca
 Crie um arquivo `.env` na raiz do projeto com as seguintes chaves:
 
 ```env
-# API
-API_URL="https://localhost:3000"
+# Configurações de URLs
+API_URL="http://localhost:3000"       # http://backend:3000
+FRONTEND_URL="http://localhost:3001"  # http://web:3001
 
-# Portas
-BACKEND_PORT=3000
-FRONTEND_PORT=3001
-DESKTOP_PORT=3002
+# Autenticação e Segurança (Gere senhas fortes, ex: https://1password.com/password-generator/)
+JWT_SECRET_KEY="sua_chave_secreta_jwt_aqui"
+JWT_KEY="sua_chave_jwt_aqui"
 
-# API Mercado Pago - https://www.mercadopago.com.br/developers/panel/credentials
-MP_PUBLIC_KEY= # Vai no front-end
-MP_ACCESS_TOKEN= # Vai no back-end
+# API Stripe - https://dashboard.stripe.com/apikeys
+STRIPE_SECRET_KEY="sk_test_sua_chave_secreta_do_stripe_aqui"
 
 # Banco de Dados
 DATABASE_URL="postgresql://dev_user:dev_password@postgres:5432/db?schema=public"
 
-# Autenticação
-JWT_KEY="sua_chave_jwt_segura"   # gere com: openssl rand -base64 64
+# Credenciais do Administrador Padrão
+ADM_USER="admin"   # usuário de administrador
+ADM_PASSWD="admin" # senha de administrador
 
-# Credenciais do Administrador (usadas no seed)
-ADM_USER="admin@funasinuca.com.br"
-ADM_PASSWD="sua_senha_segura"
+# Portas de Serviço (Docker/Local)
+BACKEND_PORT=3000
+FRONTEND_PORT=3001
+DESKTOP_PORT=3002
 ```
 
 ### 3. Execução com Docker Compose
@@ -163,6 +198,26 @@ model Reserva  { id, usuarioId, mesaId, horarioInicio, horarioFim,
 
 ---
 
+## 🔒 Segurança
+
+- **Senhas:** Criptografia com hash SHA-256.
+- **Sessão:** Autenticação via Token JWT com expiração de 7 dias.
+- **Uptime:** Infraestrutura com SLA de 99,5% de disponibilidade.
+- **Auditoria:** Todas as intervenções de funcionários geram logs imutáveis no banco de dados.
+
+### Requisitos Mínimos das Estações Desktop
+
+| Componente          | Requisito                   |
+| ------------------- | --------------------------- |
+| Sistema Operacional | Windows 10 ou superior      |
+| Processador         | Intel Core i3 / AMD Ryzen 3 |
+| Memória RAM         | 4 GB                        |
+| Armazenamento       | 2 GB                        |
+| Resolução           | 1366×768 px                 |
+| Consumo da App      | Máx. 150 MB de RAM          |
+
+---
+
 ## 🧪 Testes
 
 ```bash
@@ -171,6 +226,14 @@ bun test tests/unit          # testes unitários
 bun test tests/integration   # testes de integração
 bun test --coverage          # com cobertura
 ```
+
+---
+
+## 🔮 Roadmap
+
+- **Integração ERP/POS:** Conectar o pagamento das mesas às comandas eletrônicas de bebidas e alimentos do bar.
+- **Notificações Ativas:** Lembretes e avisos de fila via WhatsApp e SMS.
+- **Módulo de Torneios:** Gamificação, ranking local de jogadores e chaves competitivas.
 
 ---
 
