@@ -11,14 +11,11 @@ import { apiFetch } from './apiClient';
 
 export const reservaService = {
   criarPagamento: (id: string, token: string) =>
-    apiFetch<ApiResponse<{ preferenceId: string; sandboxInitPoint: string }>>(
-      `/reservas/${id}/pagamento`,
-      {
-        method: 'POST',
-        token,
-        cache: 'no-store',
-      },
-    ),
+    apiFetch<ApiResponse<{ checkoutUrl: string }>>(`/reservas/${id}/pagamento`, {
+      method: 'POST',
+      token,
+      cache: 'no-store',
+    }),
 
   // Disponibilidade — qualquer autenticado
   getDisponibilidade: (horarioInicio: string, token: string) =>
@@ -88,6 +85,14 @@ export const reservaService = {
     apiFetch<ApiResponse<Reserva>>(`/reservas/${id}`, {
       method: 'PATCH',
       data,
+      token,
+      cache: 'no-store',
+    }),
+
+  verificarPagamento: (sessionId: string, token: string) =>
+    apiFetch<ApiResponse<void>>('/reservas/verificar-pagamento', {
+      method: 'POST',
+      data: { sessionId },
       token,
       cache: 'no-store',
     }),
