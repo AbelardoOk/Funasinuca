@@ -24,7 +24,8 @@ type ReservaForm = {
 type MinhaReserva = {
   id: string;
   horarioInicio: string;
-  statusPagamento: string;
+  statusPagamento: 'PENDENTE' | 'PAGO' | 'CANCELADO';
+  presencaConfirmada: boolean;
   mesa: { numero: number };
 };
 
@@ -150,8 +151,22 @@ export default function Dashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [msg, setMsg] = useState('');
 
+  const [loadingAcao, setLoadingAcao] = useState<string | null>(null);
+
+  const [modalReagendar, setModalReagendar] = useState<{
+    visivel: boolean;
+    reservaId: string;
+    data: string;
+    horario: string;
+  }>({
+    visivel: false,
+    reservaId: '',
+    data: hojeISO(),
+    horario: '',
+  });
+
   // -----------------------------------------------------
-  // AÇÕES MEMOIZADAS (Evitam recriação a cada render e erros do ESLint)
+  // AÇÕES MEMOIZADAS
   // -----------------------------------------------------
   const mostrarPopup = useCallback((tipo: 'sucesso' | 'erro', titulo: string, desc: string) => {
     setPopup({ visivel: true, tipo, titulo, desc });
@@ -175,13 +190,8 @@ export default function Dashboard() {
   // -----------------------------------------------------
   // EFEITOS
   // -----------------------------------------------------
+  useEffect(() => setIsHydrated(true), []);
 
-  // Hidratação
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
-
-  // Efeito 1: Tratamento de Retorno de Pagamento (Stripe/Gateway)
   useEffect(() => {
     if (!isHydrated || !token) return;
 
@@ -189,21 +199,15 @@ export default function Dashboard() {
     const status = params.get('status');
     const sessionId = params.get('session_id');
 
-    // Isolar num bloco assíncrono evita o erro de "setState in effect" do ESLint
     const processarRetorno = async () => {
       if (status === 'sucesso' && sessionId) {
         router.replace('/dashboard');
         try {
           await reservaService.verificarPagamento(sessionId, token);
           setAbaAtual('minhas');
-          mostrarPopup(
-            'sucesso',
-            'Reserva confirmada!',
-            'Veja os detalhes na aba de minhas reservas.',
-          );
+          mostrarPopup('sucesso', 'Reserva confirmada!', 'O pagamento foi processado com sucesso.');
           await carregarMinhasReservas();
         } catch (err) {
-          console.error(err);
           mostrarPopup(
             'erro',
             'Ops, não confirmou...',
@@ -223,13 +227,9 @@ export default function Dashboard() {
     processarRetorno();
   }, [isHydrated, token, router, carregarMinhasReservas, mostrarPopup]);
 
-  // Efeito 2: Validação de Usuário e Carga Inicial
   useEffect(() => {
     if (!isHydrated) return;
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    if (!token) return router.push('/login');
 
     userService
       .validate(token)
@@ -237,13 +237,9 @@ export default function Dashboard() {
         if (!req.ok) sair();
         else carregarMinhasReservas();
       })
-      .catch((err) => {
-        console.error('Erro na validação do token:', err);
-        sair();
-      });
+      .catch(() => sair());
   }, [token, isHydrated, router, sair, carregarMinhasReservas]);
 
-  // Efeito 3: Busca de Disponibilidade de Mesas
   useEffect(() => {
     if (!isHydrated || !token || !reserva.data || !reserva.horario) return;
 
@@ -264,7 +260,6 @@ export default function Dashboard() {
           );
         }
       } catch (err) {
-        console.error('Erro ao buscar mesas:', err);
         setMsg('Não foi possível carregar as mesas. Tente novamente.');
       } finally {
         setIsSearching(false);
@@ -275,7 +270,78 @@ export default function Dashboard() {
   }, [reserva.data, reserva.horario, isHydrated, token]);
 
   // -----------------------------------------------------
-  // HANDLERS
+  // HANDLERS DE AÇÕES (MINHAS RESERVAS)
+  // -----------------------------------------------------
+
+  const handlePagarAgora = async (id: string) => {
+    setLoadingAcao(id);
+    try {
+      const resPagamento = await reservaService.criarPagamento(id, token);
+      if (resPagamento.data?.checkoutUrl) {
+        window.location.href = resPagamento.data.checkoutUrl;
+      } else {
+        mostrarPopup(
+          'erro',
+          'Falha ao gerar pagamento',
+          'Não foi possível gerar o link do Stripe.',
+        );
+      }
+    } catch (err) {
+      mostrarPopup('erro', 'Erro', 'Instabilidade ao conectar com o gateway de pagamento.');
+    } finally {
+      setLoadingAcao(null);
+    }
+  };
+
+  const handleCancelar = async (id: string) => {
+    if (!window.confirm('Tem certeza que deseja cancelar esta reserva?')) return;
+    setLoadingAcao(id);
+    try {
+      const res = await reservaService.cancelar(id, token);
+      if (res.ok) {
+        mostrarPopup('sucesso', 'Reserva Cancelada', 'Sua mesa foi liberada com sucesso.');
+        carregarMinhasReservas();
+      } else {
+        mostrarPopup(
+          'erro',
+          'Não foi possível cancelar',
+          res.error || 'Tente novamente mais tarde.',
+        );
+      }
+    } catch (err) {
+      mostrarPopup('erro', 'Erro', 'Falha de comunicação com o servidor.');
+    } finally {
+      setLoadingAcao(null);
+    }
+  };
+
+  const handleConfirmarReagendamento = async () => {
+    if (!modalReagendar.data || !modalReagendar.horario) return;
+    setLoading(true);
+    try {
+      const horarioInicio = `${modalReagendar.data}T${modalReagendar.horario}:00.000Z`;
+      const res = await reservaService.update(modalReagendar.reservaId, { horarioInicio }, token);
+
+      if (res.ok) {
+        mostrarPopup('sucesso', 'Horário alterado!', 'Sua reserva foi atualizada com sucesso.');
+        setModalReagendar({ visivel: false, reservaId: '', data: '', horario: '' });
+        carregarMinhasReservas();
+      } else {
+        mostrarPopup(
+          'erro',
+          'Não foi possível alterar',
+          res.error || 'Talvez este horário já esteja ocupado.',
+        );
+      }
+    } catch (err) {
+      mostrarPopup('erro', 'Erro', 'Falha ao atualizar a reserva.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -----------------------------------------------------
+  // HANDLERS (NOVA RESERVA)
   // -----------------------------------------------------
   const selecionarMesa = (mesa: Mesa) => {
     if (mesa.status !== 'disponivel') return;
@@ -306,19 +372,14 @@ export default function Dashboard() {
         setMsg('Acesse "Minhas Reservas" para tentar pagar novamente.');
       }
     } catch (err) {
-      console.error('Falha no processo de reserva/pagamento:', err);
       setMsg('Houve um erro no processo. Acesse "Minhas Reservas" ou tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Prevenção de Hydration Mismatch
   if (!isHydrated || !token) return null;
 
-  // ==========================================
-  // RENDERIZAÇÃO
-  // ==========================================
   return (
     <main style={s.page}>
       <style>{`@keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }`}</style>
@@ -327,7 +388,6 @@ export default function Dashboard() {
       <Navbar onSair={sair} />
 
       <div style={s.content}>
-        {/* Navegação por Abas */}
         <div style={s.tabs}>
           <button
             style={{ ...s.tabBtn, ...(abaAtual === 'nova' ? s.tabBtnAtivo : {}) }}
@@ -346,10 +406,8 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* ABA: NOVA RESERVA */}
         {abaAtual === 'nova' && (
           <div style={{ position: 'relative', paddingBottom: mesaSelecionada ? '100px' : '0' }}>
-            {/* Filtros */}
             <div style={s.bookingCard}>
               <h2 style={s.bookingTitle}>Quando você quer jogar?</h2>
               <div style={s.bookingForm}>
@@ -362,7 +420,7 @@ export default function Dashboard() {
                     value={reserva.data}
                     onChange={(e) => {
                       setReserva((prev) => ({ ...prev, data: e.target.value }));
-                      setMesaSelecionada(null); // Limpa a mesa selecionada se a data mudar
+                      setMesaSelecionada(null);
                     }}
                     style={s.inputDate}
                   />
@@ -380,7 +438,7 @@ export default function Dashboard() {
                         }}
                         onClick={() => {
                           setReserva((prev) => ({ ...prev, horario: h }));
-                          setMesaSelecionada(null); // Limpa a mesa selecionada se a hora mudar
+                          setMesaSelecionada(null);
                         }}
                       >
                         {h}
@@ -391,7 +449,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Grid de Mesas */}
             <div style={s.mesasSection}>
               {!reserva.horario ? (
                 <div style={s.emptyState}>
@@ -445,7 +502,6 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Checkout Footer */}
             {mesaSelecionada && (
               <CheckoutBar
                 mesa={mesaSelecionada}
@@ -458,12 +514,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ABA: MINHAS RESERVAS */}
         {abaAtual === 'minhas' && (
           <div>
             <div style={s.pageHeader}>
               <h2 style={s.pageTitle}>Minhas Reservas</h2>
-              <p style={s.pageDesc}>Acompanhe o status das suas mesas agendadas</p>
+              <p style={s.pageDesc}>Acompanhe e gerencie o status das suas mesas agendadas</p>
             </div>
 
             {minhasReservas.length === 0 ? (
@@ -471,36 +526,94 @@ export default function Dashboard() {
             ) : (
               <div style={s.reservaList}>
                 {minhasReservas.map((reservaItem) => {
-                  const jaPassou = new Date(reservaItem.horarioInicio) < new Date();
+                  const dataReserva = new Date(reservaItem.horarioInicio);
+                  const jaPassou = dataReserva < new Date();
                   const isPago = reservaItem.statusPagamento === 'PAGO';
+                  const isCancelado = reservaItem.statusPagamento === 'CANCELADO';
+                  const isProcessando = loadingAcao === reservaItem.id;
 
                   return (
                     <div
                       key={reservaItem.id}
-                      style={{ ...s.reservaCard, ...(jaPassou ? s.reservaCardPassou : {}) }}
+                      style={{
+                        ...s.reservaCard,
+                        ...(jaPassou || isCancelado ? s.reservaCardInativo : {}),
+                      }}
                     >
-                      <div>
-                        <h3 style={{ ...s.reservaCardTitle, color: jaPassou ? '#888' : '#111' }}>
-                          Mesa {reservaItem.mesa.numero}
-                        </h3>
-                        <p style={s.reservaCardDate}>
-                          {formatarDataHora(reservaItem.horarioInicio)}
-                        </p>
+                      <div style={s.reservaCardInfo}>
+                        <div>
+                          <h3
+                            style={{
+                              ...s.reservaCardTitle,
+                              color: jaPassou || isCancelado ? '#888' : '#111',
+                            }}
+                          >
+                            Mesa {reservaItem.mesa.numero}
+                          </h3>
+                          <p style={s.reservaCardDate}>
+                            {formatarDataHora(reservaItem.horarioInicio)}
+                          </p>
+                        </div>
+
+                        <div style={s.badgesContainer}>
+                          {isCancelado && <span style={s.badgeCancelado}>Cancelada</span>}
+                          {jaPassou && !isCancelado && <span style={s.badgePassou}>Já passou</span>}
+                          {reservaItem.presencaConfirmada && (
+                            <span style={s.badgeCheckin}>Presença Confirmada</span>
+                          )}
+
+                          {!isCancelado && !reservaItem.presencaConfirmada && (
+                            <span
+                              style={{
+                                ...s.mesaBadge,
+                                background: isPago ? '#F0FFF4' : '#FFFBEA',
+                                color: isPago ? '#276749' : '#7B5E00',
+                                border: `1px solid ${isPago ? '#48BB78' : '#F5C518'}`,
+                                opacity: jaPassou ? 0.6 : 1,
+                              }}
+                            >
+                              {isPago ? 'Aprovado' : 'Pagamento Pendente'}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div style={s.badgesContainer}>
-                        {jaPassou && <span style={s.badgePassou}>Já passou</span>}
-                        <span
-                          style={{
-                            ...s.mesaBadge,
-                            background: isPago ? '#F0FFF4' : '#FFFBEA',
-                            color: isPago ? '#276749' : '#7B5E00',
-                            border: `1px solid ${isPago ? '#48BB78' : '#F5C518'}`,
-                            opacity: jaPassou ? 0.6 : 1,
-                          }}
-                        >
-                          {isPago ? 'Aprovado' : 'Pendente'}
-                        </span>
-                      </div>
+
+                      {!jaPassou && !isCancelado && (
+                        <div style={s.reservaAcoes}>
+                          {!isPago && (
+                            <button
+                              style={{ ...s.btnAcao, ...s.btnPagar }}
+                              onClick={() => handlePagarAgora(reservaItem.id)}
+                              disabled={isProcessando}
+                            >
+                              {isProcessando ? '...' : '💳 Pagar'}
+                            </button>
+                          )}
+
+                          <button
+                            style={{ ...s.btnAcao, ...s.btnReagendar }}
+                            onClick={() =>
+                              setModalReagendar({
+                                visivel: true,
+                                reservaId: reservaItem.id,
+                                data: reservaItem.horarioInicio.split('T')[0],
+                                horario: '',
+                              })
+                            }
+                            disabled={isProcessando || reservaItem.presencaConfirmada}
+                          >
+                            ✏️ Reagendar
+                          </button>
+
+                          <button
+                            style={{ ...s.btnAcao, ...s.btnCancelar }}
+                            onClick={() => handleCancelar(reservaItem.id)}
+                            disabled={isProcessando || reservaItem.presencaConfirmada}
+                          >
+                            ✖ Cancelar
+                          </button>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -509,6 +622,65 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {modalReagendar.visivel && (
+        <div style={s.modalOverlay}>
+          <div style={s.modalContent}>
+            <h3 style={s.modalTitle}>Alterar Horário</h3>
+            <p style={s.modalDesc}>Escolha uma nova data e horário para sua reserva.</p>
+
+            <div style={s.bookingForm}>
+              <div style={s.fieldGroup}>
+                <label style={s.label}>Nova Data</label>
+                <input
+                  type="date"
+                  min={hojeISO()}
+                  value={modalReagendar.data}
+                  onChange={(e) => setModalReagendar((prev) => ({ ...prev, data: e.target.value }))}
+                  style={s.inputDate}
+                />
+              </div>
+              <div style={s.fieldGroup}>
+                <label style={s.label}>Novo Horário</label>
+                <div style={s.horariosGridRow}>
+                  {HORARIOS.map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      style={{
+                        ...s.horarioPill,
+                        ...(modalReagendar.horario === h ? s.horarioPillAtivo : {}),
+                      }}
+                      onClick={() => setModalReagendar((prev) => ({ ...prev, horario: h }))}
+                    >
+                      {h}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={s.modalActions}>
+              <button
+                style={s.btnModalCancelar}
+                onClick={() =>
+                  setModalReagendar({ visivel: false, reservaId: '', data: '', horario: '' })
+                }
+                disabled={loading}
+              >
+                Voltar
+              </button>
+              <button
+                style={{ ...s.submitBtn, opacity: !modalReagendar.horario || loading ? 0.5 : 1 }}
+                onClick={handleConfirmarReagendamento}
+                disabled={!modalReagendar.horario || loading}
+              >
+                {loading ? 'Salvando...' : 'Confirmar Novo Horário'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -710,20 +882,28 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: '14px',
   },
   loader: { color: '#111', fontWeight: 500 },
-  reservaList: { display: 'flex', flexDirection: 'column', gap: '12px' },
+
+  reservaList: { display: 'flex', flexDirection: 'column', gap: '16px' },
   reservaCard: {
     background: '#FFF',
     border: '1px solid #EBEBEB',
     borderRadius: '12px',
     padding: '1.25rem',
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
+    gap: '16px',
   },
-  reservaCardPassou: { background: '#FAFAFA', borderColor: '#F0F0F0' },
+  reservaCardInativo: { background: '#FAFAFA', borderColor: '#F0F0F0' },
+  reservaCardInfo: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    gap: '12px',
+  },
   reservaCardTitle: { fontSize: '15px', fontWeight: 600, color: '#111', margin: '0 0 4px 0' },
   reservaCardDate: { fontSize: '13px', color: '#666', margin: 0 },
-  badgesContainer: { display: 'flex', alignItems: 'center', gap: '8px' },
+  badgesContainer: { display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' },
   badgePassou: {
     fontSize: '11px',
     fontWeight: 600,
@@ -732,6 +912,80 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: '6px',
     padding: '4px 8px',
   },
+  badgeCancelado: {
+    fontSize: '11px',
+    fontWeight: 600,
+    background: '#FFF5F5',
+    color: '#C53030',
+    borderRadius: '6px',
+    padding: '4px 8px',
+    border: '1px solid #FEB2B2',
+  },
+  badgeCheckin: {
+    fontSize: '11px',
+    fontWeight: 600,
+    background: '#E6FFFA',
+    color: '#285E61',
+    borderRadius: '6px',
+    padding: '4px 8px',
+    border: '1px solid #81E6D9',
+  },
+
+  reservaAcoes: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    borderTop: '1px solid #F0F0F0',
+    paddingTop: '12px',
+  },
+  btnAcao: {
+    padding: '8px 12px',
+    fontSize: '13px',
+    fontWeight: 600,
+    borderRadius: '8px',
+    cursor: 'pointer',
+    border: 'none',
+    transition: 'opacity 0.2s',
+  },
+  btnPagar: { background: '#111', color: '#FFF' },
+  btnCheckin: { background: '#48BB78', color: '#FFF' },
+  btnReagendar: { background: '#EDF2F7', color: '#4A5568' },
+  btnCancelar: { background: '#FFF5F5', color: '#C53030' },
+
+  modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: 'rgba(0,0,0,0.4)',
+    zIndex: 1000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '1.5rem',
+  },
+  modalContent: {
+    background: '#FFF',
+    borderRadius: '16px',
+    padding: '2rem',
+    width: '100%',
+    maxWidth: '420px',
+    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+  },
+  modalTitle: { fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0', color: '#111' },
+  modalDesc: { fontSize: '14px', color: '#666', margin: '0 0 24px 0' },
+  modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' },
+  btnModalCancelar: {
+    padding: '10px 16px',
+    background: 'transparent',
+    border: 'none',
+    color: '#666',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontSize: '14px',
+  },
+
   popupContainer: {
     position: 'fixed',
     top: '80px',
