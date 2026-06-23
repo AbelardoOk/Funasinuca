@@ -13,10 +13,21 @@ type Mesa = {
   status: 'disponivel' | 'reservada' | 'ocupada';
 };
 
-type Reserva = {
+// Renomeado para evitar conflito com o retorno da API
+type ReservaForm = {
   mesaId: string;
   data: string;
   horario: string;
+};
+
+// Novo tipo com base no retorno do Prisma (getMinhasReservas.ts)
+type MinhaReserva = {
+  id: string;
+  horarioInicio: string;
+  statusPagamento: string;
+  mesa: {
+    numero: number;
+  };
 };
 
 const HORARIOS = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '19:00', '20:00', '21:00'];
@@ -25,22 +36,42 @@ function hojeISO() {
   return new Date().toISOString().split('T')[0];
 }
 
+function formatarDataHora(isoString: string) {
+  const data = new Date(isoString);
+  return data.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function Dashboard() {
   const [token, setToken] = useLocalStorage('token', '');
   const router = useRouter();
 
   const [isHydrated, setIsHydrated] = useState(false);
+
+  // Controle de abas
+  const [abaAtual, setAbaAtual] = useState<'nova' | 'minhas'>('nova');
+
+  // Estados de Mesas e Nova Reserva
   const [mesas, setMesas] = useState<Mesa[]>([]);
   const [mesaSelecionada, setMesaSelecionada] = useState<Mesa | null>(null);
   const [etapa, setEtapa] = useState<'lista' | 'formulario'>('lista');
-  const [reserva, setReserva] = useState<Reserva>({
+  const [reserva, setReserva] = useState<ReservaForm>({
     mesaId: '',
     data: hojeISO(),
     horario: '',
   });
+  const [filtro, setFiltro] = useState<'todas' | 'disponivel'>('disponivel');
+
+  // Estados de Minhas Reservas
+  const [minhasReservas, setMinhasReservas] = useState<MinhaReserva[]>([]);
+
+  // Estados Globais
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState('');
-  const [filtro, setFiltro] = useState<'todas' | 'disponivel'>('disponivel');
 
   useEffect(() => {
     setIsHydrated(true);
@@ -54,18 +85,18 @@ export default function Dashboard() {
       return;
     }
 
-    async function verificarAcesso() {
+    async function carregarDados() {
       try {
+        // 1. Valida o usuário
         const req = await userService.validate(token);
-
         if (!req.ok) {
           setToken('');
           router.push('/login');
           return;
         }
 
+        // 2. Busca mesas
         const resMesas = await mesaService.getAll(token);
-        console.log(resMesas.data);
         if (resMesas.data) {
           const statusMap: Record<string, Mesa['status']> = {
             DISPONIVEL: 'disponivel',
@@ -80,14 +111,21 @@ export default function Dashboard() {
             })),
           );
         }
+
+        // 3. Busca reservas do usuário
+        const resMinhas = await reservaService.getMinhas(token);
+        if (resMinhas.data) {
+          // O cast é feito aqui porque a tipagem da API original pode estar genérica
+          setMinhasReservas(resMinhas.data as unknown as MinhaReserva[]);
+        }
       } catch (error) {
-        console.error('Erro ao validar acesso:', error);
+        console.error('Erro ao carregar dados:', error);
         setToken('');
         router.push('/login');
       }
     }
 
-    verificarAcesso();
+    carregarDados();
   }, [token, isHydrated, router, setToken]);
 
   function sair() {
@@ -137,7 +175,7 @@ export default function Dashboard() {
         return;
       }
 
-      // Fallback: redireciona para página de pagamento interna
+      // Fallback
       const dataFormatada = new Date(reserva.data + 'T12:00:00').toLocaleDateString('pt-BR', {
         day: '2-digit',
         month: 'long',
@@ -185,148 +223,218 @@ export default function Dashboard() {
       </nav>
 
       <div style={s.content}>
-        {/* ── Etapa 1: Lista de mesas ── */}
-        {etapa === 'lista' && (
+        {/* ── Navegação de Abas ── */}
+        <div style={s.tabs}>
+          <button
+            style={{ ...s.tabBtn, ...(abaAtual === 'nova' ? s.tabBtnAtivo : {}) }}
+            onClick={() => {
+              setAbaAtual('nova');
+              voltarParaLista();
+            }}
+          >
+            Nova Reserva
+          </button>
+          <button
+            style={{ ...s.tabBtn, ...(abaAtual === 'minhas' ? s.tabBtnAtivo : {}) }}
+            onClick={() => setAbaAtual('minhas')}
+          >
+            Minhas Reservas
+          </button>
+        </div>
+
+        {/* ── ABA: Nova Reserva ── */}
+        {abaAtual === 'nova' && (
           <>
-            <div style={s.pageHeader}>
-              <div>
-                <h2 style={s.pageTitle}>Reservar mesa</h2>
-                <p style={s.pageDesc}>Escolha uma mesa disponível para continuar</p>
-              </div>
-              <div style={s.filtros}>
-                <button
-                  style={{ ...s.filtroBtn, ...(filtro === 'disponivel' ? s.filtroBtnAtivo : {}) }}
-                  onClick={() => setFiltro('disponivel')}
-                >
-                  Disponíveis
-                </button>
-                <button
-                  style={{ ...s.filtroBtn, ...(filtro === 'todas' ? s.filtroBtnAtivo : {}) }}
-                  onClick={() => setFiltro('todas')}
-                >
-                  Todas
-                </button>
-              </div>
-            </div>
-
-            <div style={s.legenda}>
-              {(['disponivel', 'reservada', 'ocupada'] as const).map((st) => (
-                <div key={st} style={s.legendaItem}>
-                  <div style={{ ...s.legendaDot, background: statusColor[st].dot }} />
-                  <span style={s.legendaLabel}>{statusLabel[st]}</span>
-                </div>
-              ))}
-            </div>
-
-            <div style={s.grid}>
-              {mesasFiltradas.map((mesa) => (
-                <button
-                  key={mesa.id}
-                  style={{
-                    ...s.mesaCard,
-                    ...(mesa.status !== 'disponivel' ? s.mesaCardDesabilitada : {}),
-                    ...(mesaSelecionada?.id === mesa.id ? s.mesaCardSelecionada : {}),
-                  }}
-                  onClick={() => selecionarMesa(mesa)}
-                  disabled={mesa.status !== 'disponivel'}
-                  aria-label={`Mesa ${mesa.numero} — ${statusLabel[mesa.status]}`}
-                >
-                  <div style={s.mesaTop}>
-                    <span style={s.mesaNumero}>Mesa {mesa.numero}</span>
-                    <span
+            {etapa === 'lista' && (
+              <>
+                <div style={s.pageHeader}>
+                  <div>
+                    <h2 style={s.pageTitle}>Reservar mesa</h2>
+                    <p style={s.pageDesc}>Escolha uma mesa disponível para continuar</p>
+                  </div>
+                  <div style={s.filtros}>
+                    <button
                       style={{
-                        ...s.mesaBadge,
-                        background: statusColor[mesa.status].bg,
-                        color: statusColor[mesa.status].text,
+                        ...s.filtroBtn,
+                        ...(filtro === 'disponivel' ? s.filtroBtnAtivo : {}),
+                      }}
+                      onClick={() => setFiltro('disponivel')}
+                    >
+                      Disponíveis
+                    </button>
+                    <button
+                      style={{ ...s.filtroBtn, ...(filtro === 'todas' ? s.filtroBtnAtivo : {}) }}
+                      onClick={() => setFiltro('todas')}
+                    >
+                      Todas
+                    </button>
+                  </div>
+                </div>
+
+                <div style={s.legenda}>
+                  {(['disponivel', 'reservada', 'ocupada'] as const).map((st) => (
+                    <div key={st} style={s.legendaItem}>
+                      <div style={{ ...s.legendaDot, background: statusColor[st].dot }} />
+                      <span style={s.legendaLabel}>{statusLabel[st]}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={s.grid}>
+                  {mesasFiltradas.map((mesa) => (
+                    <button
+                      key={mesa.id}
+                      style={{
+                        ...s.mesaCard,
+                        ...(mesa.status !== 'disponivel' ? s.mesaCardDesabilitada : {}),
+                        ...(mesaSelecionada?.id === mesa.id ? s.mesaCardSelecionada : {}),
+                      }}
+                      onClick={() => selecionarMesa(mesa)}
+                      disabled={mesa.status !== 'disponivel'}
+                    >
+                      <div style={s.mesaTop}>
+                        <span style={s.mesaNumero}>Mesa {mesa.numero}</span>
+                        <span
+                          style={{
+                            ...s.mesaBadge,
+                            background: statusColor[mesa.status].bg,
+                            color: statusColor[mesa.status].text,
+                          }}
+                        >
+                          {statusLabel[mesa.status]}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {etapa === 'formulario' && mesaSelecionada && (
+              <div style={s.formWrap}>
+                <button style={s.voltarBtn} onClick={voltarParaLista}>
+                  ← Voltar
+                </button>
+
+                <div style={s.formCard}>
+                  <div style={s.formHeader}>
+                    <div style={s.formBadgeGrande}>Mesa {mesaSelecionada.numero}</div>
+                  </div>
+
+                  <form onSubmit={confirmarReserva} style={s.form}>
+                    <div style={s.fieldGroup}>
+                      <label style={s.label}>Data</label>
+                      <input
+                        type="date"
+                        required
+                        min={hojeISO()}
+                        value={reserva.data}
+                        onChange={(e) => setReserva((prev) => ({ ...prev, data: e.target.value }))}
+                        style={s.input}
+                      />
+                    </div>
+
+                    <div style={s.fieldGroup}>
+                      <label style={s.label}>Horário</label>
+                      <div style={s.horariosGrid}>
+                        {HORARIOS.map((h) => (
+                          <button
+                            key={h}
+                            type="button"
+                            style={{
+                              ...s.horarioBtn,
+                              ...(reserva.horario === h ? s.horarioBtnAtivo : {}),
+                            }}
+                            onClick={() => setReserva((prev) => ({ ...prev, horario: h }))}
+                          >
+                            {h}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {msg && (
+                      <div style={s.msgErro}>
+                        <span>✕</span> {msg}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      style={{
+                        ...s.submitBtn,
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? 'not-allowed' : 'pointer',
                       }}
                     >
-                      {statusLabel[mesa.status]}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
+                      {loading ? 'Confirmando...' : 'Ir para pagamento →'}
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
           </>
         )}
 
-        {/* ── Etapa 2: Formulário ── */}
-        {etapa === 'formulario' && mesaSelecionada && (
-          <div style={s.formWrap}>
-            <button style={s.voltarBtn} onClick={voltarParaLista}>
-              ← Voltar
-            </button>
-
-            <div style={s.formCard}>
-              <div style={s.formHeader}>
-                <div style={s.formBadgeGrande}>Mesa {mesaSelecionada.numero}</div>
+        {/* ── ABA: Minhas Reservas ── */}
+        {abaAtual === 'minhas' && (
+          <div>
+            <div style={s.pageHeader}>
+              <div>
+                <h2 style={s.pageTitle}>Minhas Reservas</h2>
+                <p style={s.pageDesc}>Acompanhe o status das suas mesas agendadas</p>
               </div>
-
-              <form onSubmit={confirmarReserva} style={s.form}>
-                <div style={s.fieldGroup}>
-                  <label style={s.label}>Data</label>
-                  <input
-                    type="date"
-                    required
-                    min={hojeISO()}
-                    value={reserva.data}
-                    onChange={(e) => setReserva((prev) => ({ ...prev, data: e.target.value }))}
-                    style={s.input}
-                    onFocus={(e) => {
-                      (e.target as HTMLInputElement).style.borderColor = '#F5C518';
-                      (e.target as HTMLInputElement).style.boxShadow =
-                        '0 0 0 3px rgba(245,197,24,0.18)';
-                    }}
-                    onBlur={(e) => {
-                      (e.target as HTMLInputElement).style.borderColor = '#E5E5E5';
-                      (e.target as HTMLInputElement).style.boxShadow = 'none';
-                    }}
-                  />
-                </div>
-
-                <div style={s.fieldGroup}>
-                  <label style={s.label}>Horário</label>
-                  <div style={s.horariosGrid}>
-                    {HORARIOS.map((h) => (
-                      <button
-                        key={h}
-                        type="button"
-                        style={{
-                          ...s.horarioBtn,
-                          ...(reserva.horario === h ? s.horarioBtnAtivo : {}),
-                        }}
-                        onClick={() => setReserva((prev) => ({ ...prev, horario: h }))}
-                      >
-                        {h}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {msg && (
-                  <div style={s.msgErro}>
-                    <span>✕</span> {msg}
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    ...s.submitBtn,
-                    opacity: loading ? 0.7 : 1,
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!loading) (e.target as HTMLButtonElement).style.background = '#E0B400';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.target as HTMLButtonElement).style.background = '#F5C518';
-                  }}
-                >
-                  {loading ? 'Confirmando...' : 'Ir para pagamento →'}
-                </button>
-              </form>
             </div>
+
+            {minhasReservas.length === 0 ? (
+              <div style={s.emptyState}>Você ainda não possui reservas cadastradas.</div>
+            ) : (
+              <div style={s.reservaList}>
+                {minhasReservas.map((reservaItem) => {
+                  const jaPassou = new Date(reservaItem.horarioInicio) < new Date();
+
+                  return (
+                    <div
+                      key={reservaItem.id}
+                      style={{
+                        ...s.reservaCard,
+                        ...(jaPassou ? s.reservaCardPassou : {}),
+                      }}
+                    >
+                      <div>
+                        <h3
+                          style={{
+                            ...s.reservaCardTitle,
+                            color: jaPassou ? '#888' : '#111',
+                          }}
+                        >
+                          Mesa {reservaItem.mesa.numero}
+                        </h3>
+                        <p style={s.reservaCardDate}>
+                          {formatarDataHora(reservaItem.horarioInicio)}
+                        </p>
+                      </div>
+                      <div style={s.badgesContainer}>
+                        {jaPassou && <span style={s.badgePassou}>Já passou</span>}
+                        <span
+                          style={{
+                            ...s.mesaBadge,
+                            background:
+                              reservaItem.statusPagamento === 'PAGO' ? '#F0FFF4' : '#FFFBEA',
+                            color: reservaItem.statusPagamento === 'PAGO' ? '#276749' : '#7B5E00',
+                            border: `1px solid ${reservaItem.statusPagamento === 'PAGO' ? '#48BB78' : '#F5C518'}`,
+                            opacity: jaPassou ? 0.6 : 1, // Deixa a badge de pagamento mais transparente se já passou
+                          }}
+                        >
+                          {reservaItem.statusPagamento === 'PAGO' ? 'Aprovado' : 'Pendente'}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -382,6 +490,21 @@ const s: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   content: { maxWidth: '860px', margin: '0 auto', padding: '2rem 1.5rem' },
+
+  // Tabs
+  tabs: { display: 'flex', gap: '1.5rem', borderBottom: '1px solid #EBEBEB', marginBottom: '2rem' },
+  tabBtn: {
+    background: 'none',
+    border: 'none',
+    padding: '0 0 10px 0',
+    fontSize: '15px',
+    fontWeight: 600,
+    color: '#888',
+    cursor: 'pointer',
+    borderBottom: '2px solid transparent',
+  },
+  tabBtnAtivo: { color: '#111', borderBottomColor: '#F5C518' },
+
   pageHeader: {
     display: 'flex',
     alignItems: 'flex-start',
@@ -435,10 +558,7 @@ const s: Record<string, React.CSSProperties> = {
   mesaCardSelecionada: { borderColor: '#F5C518', boxShadow: '0 0 0 3px rgba(245,197,24,0.2)' },
   mesaTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   mesaNumero: { fontSize: '14px', fontWeight: 600, color: '#111' },
-  mesaBadge: { fontSize: '11px', fontWeight: 500, borderRadius: '6px', padding: '2px 8px' },
-  mesaIconeWrap: { display: 'flex', alignItems: 'center', gap: '8px' },
-  mesaIcone: { fontSize: '22px' },
-  mesaLugares: { fontSize: '13px', color: '#666' },
+  mesaBadge: { fontSize: '11px', fontWeight: 600, borderRadius: '6px', padding: '4px 8px' },
   formWrap: { maxWidth: '460px', margin: '0 auto' },
   voltarBtn: {
     fontSize: '13px',
@@ -467,7 +587,6 @@ const s: Record<string, React.CSSProperties> = {
     padding: '6px 16px',
     marginBottom: '6px',
   },
-  formSubtitle: { fontSize: '13px', color: '#888', margin: 0 },
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
   fieldGroup: { display: 'flex', flexDirection: 'column', gap: '6px' },
   label: { fontSize: '13px', fontWeight: 500, color: '#444' },
@@ -479,7 +598,6 @@ const s: Record<string, React.CSSProperties> = {
     outline: 'none',
     background: '#FAFAFA',
     color: '#111',
-    transition: 'border-color 0.15s, box-shadow 0.15s',
     width: '100%',
     boxSizing: 'border-box',
     fontFamily: 'inherit',
@@ -494,7 +612,6 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: '8px',
     cursor: 'pointer',
     color: '#444',
-    transition: 'all 0.12s',
   },
   horarioBtnAtivo: { background: '#F5C518', borderColor: '#F5C518', color: '#111' },
   msgErro: {
@@ -519,7 +636,39 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     width: '100%',
     cursor: 'pointer',
-    transition: 'background 0.15s',
-    letterSpacing: '0.01em',
+  },
+
+  // Listagem Minhas Reservas
+  emptyState: {
+    textAlign: 'center',
+    padding: '3rem',
+    color: '#888',
+    background: '#FFF',
+    borderRadius: '14px',
+    border: '1px dashed #E5E5E5',
+    fontSize: '14px',
+  },
+  reservaList: { display: 'flex', flexDirection: 'column', gap: '12px' },
+  reservaCard: {
+    background: '#FFF',
+    border: '1px solid #EBEBEB',
+    borderRadius: '12px',
+    padding: '1.25rem',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  reservaCardTitle: { fontSize: '15px', fontWeight: 600, color: '#111', margin: '0 0 4px 0' },
+  reservaCardDate: { fontSize: '13px', color: '#666', margin: 0 },
+  reservaCardPassou: { background: '#FAFAFA', borderColor: '#F0F0F0' },
+  badgesContainer: { display: 'flex', alignItems: 'center', gap: '8px' },
+  badgePassou: {
+    fontSize: '11px',
+    fontWeight: 600,
+    background: '#F0F0F0',
+    color: '#888',
+    borderRadius: '6px',
+    padding: '4px 8px',
+    border: '1px solid #E5E5E5',
   },
 };

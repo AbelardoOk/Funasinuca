@@ -2,6 +2,7 @@ import Elysia from 'elysia';
 import cancelarReserva from './cancelReserva';
 import confirmarPresenca from './confirmarPresenca';
 import createReserva from './createReserva';
+import criarPagamento from './criarPagamento';
 import getDisponibilidade from './getDisponibilidade';
 import getMinhasReservas from './getMyReservas';
 import getRelatorio from './getRelatorio';
@@ -16,8 +17,8 @@ const reservaGroup = new Elysia({ prefix: '/reservas' })
   .use(createReserva) // POST /api/reservas
   .use(confirmarPresenca) // POST /api/reservas/:id/confirmar-presenca
   .use(cancelarReserva) // PATCH /api/reservas/:id/cancelar
-  .use(updateReserva); // PATCH /api/reservas/:id
-// .use(criarPagamento); // POST /api/reservas/:id/pagamento
+  .use(updateReserva) // PATCH /api/reservas/:id
+  .use(criarPagamento); // POST /api/reservas/:id/pagamento
 // .use(webhook); // POST /api/reservas/webhook
 
 export default reservaGroup;
