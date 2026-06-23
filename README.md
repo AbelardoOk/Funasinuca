@@ -75,7 +75,7 @@ O sistema foi idealizado para resolver problemas comuns em bares locais de Campo
 ### 1. Clonando o Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/funasinuca.git
+git clone https://github.com/AbelardoOk/funasinuca.git
 cd funasinuca
 ```
 
